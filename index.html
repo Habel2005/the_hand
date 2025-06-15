@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Hand Game</title>
+    <style>
+        /* Basic CSS to make the viewer take up the full screen */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #000; /* Black background for the body */
+            color: #333;
+        }
+        canvas {
+            display: block;
+        }
+        /* Styles for the controls div (now at the bottom) */
+        #controls {
+            position: absolute;
+            bottom: 10px; /* Moved to bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+            font-family: sans-serif;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 12px 20px; /* Larger buttons */
+            font-size: 16px; /* Larger font */
+            cursor: pointer;
+            border: none;
+            border-radius: 8px; /* More rounded corners */
+            background: #333;
+            color: white;
+            transition: background 0.2s, transform 0.1s; /* Smooth hover and click feedback */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Button shadow */
+        }
+        button:hover {
+            background: #555;
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        button:active {
+            transform: translateY(1px); /* Push down on click */
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Style for the "Press something" message (now at the top) */
+        #idle-message {
+            position: absolute;
+            top: 40px; /* Moved to top, increased spacing from edge */
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff; /* Orange color for emphasis */
+            font-size: 36px; /* Larger font for prominence */
+            font-weight: bold;
+            z-index: 9; /* Below controls, above hand */
+            text-shadow: 0 0 10px rgba(0, 81, 255, 0.8), 0 0 20px rgba(30, 0, 255, 0.5); /* Glowing text effect */
+            display: none; /* Hidden by default, shown when idle */
+            animation: pulse 1.5s infinite alternate; /* Pulsing animation for message */
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.7; transform: translateX(-50%) scale(1); }
+            to { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* Styles for lives display (images) */
+        #lives-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex; /* Arrange images horizontally */
+            gap: 5px; /* Spacing between lives */
+            z-index: 10;
+        }
+        #lives-container img {
+            width: 35px; /* Size of life icon */
+            height: 35px;
+            object-fit: contain; /* Ensure image fits without distortion */
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); /* Small shadow for visibility */
+            /* Add transition for shrink animation */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        /* Class for losing a life animation */
+        #lives-container img.lose-animation {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+
+        /* Styles for stars display */
+        #stars-container {
+            position: absolute;
+            left: 20px; /* Left middle */
+            top: 50%;
+            transform: translateY(-50%); /* Vertically center */
+            display: flex;
+            flex-direction: column; /* Stack stars vertically */
+            gap: 5px; /* Spacing between stars */
+            z-index: 10;
+        }
+        #stars-container img {
+            width: 40px; /* Size of star icon */
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(255,255,0,0.8)); /* Glowing effect for stars */
+            /* Add transition for new star animation */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: scale(0); /* Start scaled down for animation */
+            opacity: 0; /* Start hidden for animation */
+        }
+        /* Class for new star animation */
+        #stars-container img.gain-animation {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+
+        /* Styles for game result message */
+        #game-result {
+            position: absolute;
+            top: 100px; /* Below idle message */
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFF; /* White by default, can change for win/lose */
+            font-size: 38px; /* Larger font for main game messages */
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            z-index: 10;
+            display: none; /* Hidden until a result is displayed */
+        }
+
+        /* Styles for round message */
+        #round-message {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50; /* Green color for round start */
+            font-size: 80px; /* Huge text */
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(76,175,80,0.8);
+            z-index: 11; /* Above other messages */
+            opacity: 0; /* Hidden by default, will fade in/out */
+            transition: opacity 0.5s ease-out; /* Fade transition */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Message displayed during idle animation -->
+    <div id="idle-message">Make a move!</div>
+
+    <!-- Display for User Lives (images) -->
+    <div id="lives-container"></div> 
+
+    <!-- Display for Stars (images) -->
+    <div id="stars-container"></div>
+
+    <!-- Display for Game Result -->
+    <div id="game-result"></div>
+
+    <!-- Display for Round Message -->
+    <div id="round-message"></div>
+
+    <!-- This is where the 3D scene will be rendered -->
+    <canvas id="c"></canvas>
+
+    <!-- Controls for Stone, Paper, Scissor -->
+    <div id="controls">
+        <button id="stone">Stone</button>
+        <button id="paper">Paper</button>
+        <button id="scissor">Scissor</button>
+    </div>
+
+    <!-- Importmap for Three.js modules -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Main application logic -->
+    <script type="module">
+        // Import necessary modules from Three.js
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- SCENE SETUP ---
+        const canvas = document.querySelector('#c');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); // Black background for the 3D scene
+
+        // --- CAMERA SETUP ---
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0.5, 3); 
+
+        // --- CONTROLS ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 0.5, -0.75); 
+
+        // --- LIGHTING ---
+        scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+
+        // --- MODEL STATE VARIABLES ---
+        let userModel, aiModel; // References to the two hand models
+        let userBoneMap = {};
+        let userFingerJoints = {};
+        let aiBoneMap = {};
+        let aiFingerJoints = {};
+        let modelsLoadedCount = 0; // Counter to ensure both models are loaded
+
+        // Base pose (Paper) - This is the default/idle position
+        const basePose = {
+            index: 0,
+            middle: 0,
+            ring: 0,
+            pinky: 0,
+            thumb: 0.6 
+        };
+
+        // Current pose for the USER HAND (can be intermediate during transition/idle)
+        let currentUserPose = { ...basePose }; 
+        // Current pose for the AI HAND (will also animate)
+        let currentAiPose = { ...basePose };
+
+        // Variables for idle animation and inactivity detection
+        let lastActivityTime = performance.now();
+        const INACTIVITY_THRESHOLD = 6000; // 6 seconds of inactivity to trigger idle animation
+        const IDLE_ANIM_CYCLE_DURATION = 2000; // 2 seconds for one full idle wiggle cycle (down and back)
+        const IDLE_ANIMATION_PLAY_COUNT = 1; // Number of times the idle animation should cycle
+        let idleAnimationActive = false; // True if the animation is currently playing
+        let idleAnimationStartTime = 0;
+        let idleMessageDisplayed = false; // True if "Press something" should be visible
+
+        const idleMessageDiv = document.getElementById('idle-message');
+
+        // Variables for smooth transitions
+        let userTargetPose = { ...basePose }; // The pose user hand animates towards
+        let userStartPoseForTransition = { ...basePose }; // The pose user hand starts transition from
+        let aiTargetPose = { ...basePose }; // The pose AI hand animates towards
+        let aiStartPoseForTransition = { ...basePose }; // The pose AI hand starts transition from
+
+        let transitionStartTime = 0;
+        const transitionDuration = 300; // milliseconds for pose transitions
+        let isTransitioning = false; // True if a transition is currently in progress
+        let gameOutcomeDetermined = false; // Flag to determine outcome only once per round
+
+        // --- GAME STATE VARIABLES ---
+        let userLives = 3;
+        let userWins = 0;
+        const MAX_LIVES = 3;
+        const WIN_ROUNDS = 3;
+        let gameActive = true; // True if game is ongoing, false if won or lost
+        let currentRound = 0; // Tracks the current round number
+        let gamePhase = 'LOADING'; // Current phase of the game
+
+        // UI elements
+        const livesContainer = document.getElementById('lives-container');
+        const starsContainer = document.getElementById('stars-container');
+        const gameMessageDiv = document.getElementById('game-result');
+        const roundMessageDiv = document.getElementById('round-message'); // New round message div
+        const controlButtons = Array.from(document.querySelectorAll('#controls button'));
+
+
+        // --- HAND TRANSFORMATION DATA ---
+        // These are the specific values you provided for exact positioning.
+        const userHandTransform = {
+            posX: 0.210, posY: -0.780, posZ: -0.65,
+            rotX: -0.260, rotY: 1.440, rotZ: 0.670 
+        };
+        const aiHandTransform = {
+            posX: 0.080, posY: 0.570, posZ: -2.62,
+            rotX: 0.280, rotY: -1.650, rotZ: -0.260 
+        };
+
+
+        // --- UPDATE HAND POSE FUNCTION (Generic for any hand) ---
+        // Applies the given poseValues to the specified bone map and finger joints.
+        const updateHandPose = (targetBoneMap, targetFingerJoints, poseValues) => {
+            if (!targetBoneMap || !targetFingerJoints) {
+                console.error("updateHandPose: Missing boneMap or fingerJoints.");
+                return; // Guard against uninitialized maps
+            }
+
+            // Fingers: Index, Middle, Ring, Pinky
+            targetFingerJoints.index.forEach(joint => joint && (joint.rotation.y = poseValues.index));
+            targetFingerJoints.middle.forEach(joint => joint && (joint.rotation.y = poseValues.middle));
+            targetFingerJoints.ring.forEach(joint => joint && (joint.rotation.y = poseValues.ring));
+            targetFingerJoints.pinky.forEach(joint => joint && (joint.rotation.y = poseValues.pinky));
+            
+            // Thumb rotations
+            if (targetBoneMap.Finger_Thumb1_020) {
+                targetBoneMap.Finger_Thumb1_020.rotation.x = poseValues.thumb * 0.7;
+                targetBoneMap.Finger_Thumb1_020.rotation.z = poseValues.thumb * 1.2;
+                targetBoneMap.Finger_Thumb1_020.rotation.y = poseValues.thumb * 0.2;
+            }
+            if (targetBoneMap.Finger_Thumb2_021) {
+                targetBoneMap.Finger_Thumb2_021.rotation.x = -poseValues.thumb * 0.8;
+            }
+            if (targetBoneMap.Finger_Thumb3_022) {
+                targetBoneMap.Finger_Thumb3_022.rotation.x = -poseValues.thumb * 0.9;
+            }
+        };
+
+        // --- GAME LOGIC FUNCTIONS ---
+
+        // Function to determine winner of a round
+        const determineWinner = (userChoice, aiChoice) => {
+            if (userChoice === aiChoice) {
+                return 'draw';
+            }
+            // User wins conditions
+            if (
+                (userChoice === 'stone' && aiChoice === 'scissor') ||
+                (userChoice === 'paper' && aiChoice === 'stone') ||
+                (userChoice === 'scissor' && aiChoice === 'paper')
+            ) {
+                return 'userWin';
+            }
+            // Otherwise, user loses
+            return 'userLose';
+        };
+
+        // Function to update the lives display with images
+        const updateLivesDisplay = (lostLifeIndex = -1) => {
+            const currentLifeImgs = Array.from(livesContainer.children);
+
+            // If a life was lost, animate the last one
+            if (lostLifeIndex !== -1 && currentLifeImgs.length > lostLifeIndex) {
+                const lifeToAnimate = currentLifeImgs[lostLifeIndex];
+                lifeToAnimate.classList.add('lose-animation');
+                setTimeout(() => {
+                    // Remove after animation
+                    if (lifeToAnimate.parentNode) {
+                        lifeToAnimate.parentNode.removeChild(lifeToAnimate);
+                    }
+                    // Re-draw remaining lives to ensure correct count if needed (though not strictly necessary with this approach)
+                    // (Optional: if you want lives to always be tightly packed, redraw all, but animation might be less smooth)
+                }, 300); // Match CSS transition duration
+            } else {
+                // If no specific life to animate (e.g., initial setup or game over), just redraw all
+                livesContainer.innerHTML = '';
+                for (let i = 0; i < userLives; i++) {
+                    const lifeImg = document.createElement('img');
+                    lifeImg.src = 'life.png'; // Path to life.png
+                    lifeImg.alt = 'Life';
+                    livesContainer.appendChild(lifeImg);
+                }
+            }
+        };
+
+        // Function to update the stars display with images
+        const updateStarsDisplay = (gainedStarIndex = -1) => {
+            const currentStarImgs = Array.from(starsContainer.children);
+
+            // If a star was gained, animate the new one
+            if (gainedStarIndex !== -1 && currentStarImgs.length < userWins) {
+                const starImg = document.createElement('img');
+                starImg.src = 'star.png'; // Path to star.jpg
+                starImg.alt = 'Star';
+                starsContainer.appendChild(starImg);
+                // Trigger animation by adding class after a slight delay
+                setTimeout(() => {
+                    starImg.classList.add('gain-animation');
+                }, 10); // Small delay to allow DOM render
+            } else {
+                // If no specific star to animate (e.g., initial setup or game over), just redraw all
+                starsContainer.innerHTML = '';
+                for (let i = 0; i < userWins; i++) {
+                    const starImg = document.createElement('img');
+                    starImg.src = 'star.png'; // Path to star.jpg
+                    starImg.alt = 'Star';
+                    starsContainer.appendChild(starImg);
+                    starImg.classList.add('gain-animation'); // Apply immediately for existing stars
+                }
+            }
+        };
+
+
+        // Function to show and fade the round message
+        const showRoundMessage = (roundNum) => {
+            gameMessageDiv.style.display = 'none'; // Ensure game result is hidden
+            roundMessageDiv.textContent = `Round ${roundNum}`;
+            roundMessageDiv.style.opacity = 1;
+            roundMessageDiv.style.display = 'block';
+            gamePhase = 'INITIALIZING_ROUND'; // Indicate round intro is playing
+            disableGameControls(); // Disable controls during round intro
+            setTimeout(() => {
+                roundMessageDiv.style.opacity = 0;
+                // After fade out, ready for user input
+                setTimeout(() => {
+                    roundMessageDiv.style.display = 'none';
+                    gamePhase = 'WAITING_FOR_USER_INPUT';
+                    enableGameControls();
+                    lastActivityTime = performance.now(); // Reset for idle after round start
+                }, 500); // Wait for transition to complete
+            }, 1500); // Fade out after 1.5 seconds
+        };
+
+        // Function to handle the outcome of a round
+        const handleGameOutcome = (result) => {
+            let message = '';
+            gameMessageDiv.style.color = '#FFF'; // Default white color
+
+            const previousLives = userLives; // Store for animation logic
+
+            if (result === 'userWin') {
+                userWins++;
+                message = 'You Win This Round!';
+            } else if (result === 'userLose') {
+                userLives--;
+                message = 'You Lose This Round!';
+            } else { // draw
+                message = 'It\'s a Draw!';
+            }
+
+            gameMessageDiv.textContent = message;
+            gameMessageDiv.style.display = 'block';
+            
+            // Trigger UI updates with animations
+            if (result === 'userLose') {
+                updateLivesDisplay(userLives); // Animate the Nth life away
+            } else {
+                updateLivesDisplay(); // Just update without animation if not losing
+            }
+            if (result === 'userWin') {
+                updateStarsDisplay(userWins -1); // Animate the new star appearing
+            } else {
+                updateStarsDisplay(); // Just update without animation if not gaining
+            }
+
+            // Game end check
+            if (userLives <= 0) {
+                gameMessageDiv.textContent = 'Game Over! You Lost All Lives.';
+                gameMessageDiv.style.color = '#FF0000'; // Red for loss
+                gameActive = false;
+                gamePhase = 'GAME_OVER';
+                disableGameControls();
+            } else if (userWins >= WIN_ROUNDS) {
+                gameMessageDiv.textContent = 'Game Complete! You Won!';
+                gameMessageDiv.style.color = '#00FF00'; // Green for win
+                gameActive = false;
+                gamePhase = 'GAME_OVER';
+                disableGameControls();
+            } else {
+                // If game continues, hands stay in played shapes for 3 seconds, then reset.
+                gamePhase = 'DISPLAY_OUTCOME'; // Indicate showing outcome and holding poses
+                setTimeout(() => {
+                    gameMessageDiv.style.display = 'none'; // Clear outcome message
+                    
+                    // Trigger smooth transition back to basePose (paper) for both hands
+                    userStartPoseForTransition = { ...currentUserPose };
+                    userTargetPose = { ...basePose }; // Paper pose
+                    aiStartPoseForTransition = { ...currentAiPose };
+                    aiTargetPose = { ...basePose }; // Paper pose
+                    
+                    transitionStartTime = performance.now();
+                    isTransitioning = true; // Trigger a new transition for reset
+                    gamePhase = 'RESETTING_HANDS'; // Indicate hands are resetting
+                    
+                    // The next round will start after this reset transition completes in animate loop
+                }, 3000); // Hands held for 3 seconds + outcome message display time
+            }
+        };
+
+        // Function to enable/disable game buttons
+        const enableGameControls = () => {
+            controlButtons.forEach(button => {
+                button.disabled = false;
+            });
+        };
+        const disableGameControls = () => {
+            controlButtons.forEach(button => {
+                button.disabled = true;
+            });
+        };
+
+        // Function to start a new round (called when game is ready for user input)
+        const startRound = () => {
+            if (!gameActive) return; // Don't start rounds if game is over
+            currentRound++;
+            showRoundMessage(currentRound); // Show "Round X" message, which then transitions to WAITING_FOR_USER_INPUT
+        };
+
+        // --- APPLY POSE FUNCTION (Triggers transition for user, AI also animates) ---
+        const applyPose = (userChoiceKey) => {
+            if (gamePhase !== 'WAITING_FOR_USER_INPUT') {
+                console.warn('Cannot apply pose: Game not in WAITING_FOR_USER_INPUT phase.');
+                return; 
+            }
+
+            resetActivity(); // Any user interaction resets idle timer
+            gameMessageDiv.style.display = 'none'; // Hide previous messages
+            roundMessageDiv.style.display = 'none';
+
+            // User hand transition setup
+            userStartPoseForTransition = { ...currentUserPose };
+            userTargetPose = poses[userChoiceKey];
+            
+            // AI chooses randomly
+            const aiChoices = ['stone', 'paper', 'scissor'];
+            const aiChoiceKey = aiChoices[Math.floor(Math.random() * aiChoices.length)];
+            aiStartPoseForTransition = { ...currentAiPose };
+            aiTargetPose = poses[aiChoiceKey];
+
+            // Store choices for outcome determination later
+            window.userChoiceDuringRound = userChoiceKey;
+            window.aiChoiceDuringRound = aiChoiceKey;    
+
+            transitionStartTime = performance.now();
+            isTransitioning = true;
+            gameOutcomeDetermined = false; // Reset for new round
+            idleMessageDiv.style.display = 'none'; // Hide idle message during interaction
+
+            disableGameControls(); // Disable buttons during play
+            gamePhase = 'HAND_TRANSITIONING'; // Set game phase
+        };
+
+        // --- PRESET POSES ---
+        const poses = {
+            stone: {
+                index: 1.64,
+                middle: 1.52,
+                ring: 1.52,
+                pinky: 1.13,
+                thumb: -0.58
+            },
+            paper: {
+                index: 0,
+                middle: 0,
+                ring: 0,
+                pinky: 0,
+                thumb: 0.6
+            },
+            scissor: {
+                index: 0,
+                middle: 0,
+                ring: 1.52,
+                pinky: 1.13,
+                thumb: -0.25
+            }
+        };
+
+        // Define a "half-stone" pose for the idle animation's target
+        const halfStoneIdlePose = {
+            index: 0.8,
+            middle: 0.7,
+            ring: 0.7,
+            pinky: 0.6,
+            thumb: 0.1
+        };
+
+        // --- UI BUTTON EVENT LISTENERS ---
+        document.getElementById('stone').onclick = () => applyPose('stone');
+        document.getElementById('paper').onclick = () => applyPose('paper');
+        document.getElementById('scissor').onclick = () => applyPose('scissor');
+
+        // --- Reset Activity Function (called on user interaction) ---
+        const resetActivity = () => {
+            lastActivityTime = performance.now();
+            // Only reset idle animation states if not in an active game phase
+            if (gamePhase === 'WAITING_FOR_USER_INPUT' || gamePhase === 'IDLE') {
+                idleAnimationActive = false;
+                idleAnimationStartTime = 0; 
+                if (idleMessageDisplayed) {
+                    idleMessageDisplayed = false;
+                    idleMessageDiv.style.display = 'none';
+                }
+            }
+        };
+
+        // --- Event Listeners for User Interaction ---
+        // These reset idle timer but don't affect game state
+        document.addEventListener('mousemove', resetActivity);
+        document.addEventListener('mousedown', resetActivity);
+        document.addEventListener('keydown', resetActivity);
+        document.getElementById('controls').addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON') { 
+                resetActivity();
+            }
+        });
+
+
+        // --- GLTF MODEL LOADING (for User Hand) ---
+        new GLTFLoader().load(
+            'https://habel2005.github.io/the_hand/the_hand.glb',
+            (gltf) => {
+                userModel = gltf.scene;
+                scene.add(userModel);
+                // Set initial position and rotation from userHandTransform
+                userModel.position.set(userHandTransform.posX, userHandTransform.posY, userHandTransform.posZ);
+                userModel.rotation.set(userHandTransform.rotX, userHandTransform.rotY, userHandTransform.rotZ);
+
+                userModel.traverse((node) => {
+                    if (node.isBone) {
+                        userBoneMap[node.name] = node;
+                    }
+                });
+
+                userFingerJoints = {
+                    index: [userBoneMap.Finger_Index1_04, userBoneMap.Finger_Index2_05, userBoneMap.Finger_Index3_06],
+                    middle: [userBoneMap.Finger_Middle1_08, userBoneMap.Finger_Middle2_09, userBoneMap.Finger_Middle3_010],
+                    ring: [userBoneMap.Finger_Ring1_012, userBoneMap.Finger_Ring2_013, userBoneMap.Finger_Ring3_014],
+                    pinky: [userBoneMap.Finger_Pinky1_016, userBoneMap.Finger_Pinky2_017, userBoneMap.Finger_Pinky3_018],
+                    thumb: [userBoneMap.Finger_Thumb1_020, userBoneMap.Finger_Thumb2_021, userBoneMap.Finger_Thumb3_022] 
+                };
+                modelsLoadedCount++;
+                
+                // --- GLTF MODEL LOADING (for AI Hand) ---
+                new GLTFLoader().load(
+                    'https://habel2005.github.io/the_hand/the_hand.glb',
+                    (gltfAI) => {
+                        aiModel = gltfAI.scene;
+                        scene.add(aiModel);
+                        // Set initial position and rotation from aiHandTransform
+                        aiModel.position.set(aiHandTransform.posX, aiHandTransform.posY, aiHandTransform.posZ); 
+                        aiModel.rotation.set(aiHandTransform.rotX, aiHandTransform.rotY, aiHandTransform.rotZ);
+
+                        aiModel.traverse((node) => {
+                            if (node.isBone) {
+                                aiBoneMap[node.name] = node;
+                            }
+                        });
+
+                        aiFingerJoints = {
+                            index: [aiBoneMap.Finger_Index1_04, aiBoneMap.Finger_Index2_05, aiBoneMap.Finger_Index3_06],
+                            middle: [aiBoneMap.Finger_Middle1_08, aiBoneMap.Finger_Middle2_09, aiBoneMap.Finger_Middle3_010],
+                            ring: [aiBoneMap.Finger_Ring1_012, aiBoneMap.Finger_Ring2_013, aiBoneMap.Finger_Ring3_014],
+                            pinky: [aiBoneMap.Finger_Pinky1_016, aiBoneMap.Finger_Pinky2_017, aiBoneMap.Finger_Pinky3_018],
+                            thumb: [aiBoneMap.Finger_Thumb1_020, aiBoneMap.Finger_Thumb2_021, aiBoneMap.Finger_Thumb3_022] 
+                        };
+                        modelsLoadedCount++;
+
+                        // Initialize game once both models are loaded
+                        if (modelsLoadedCount === 2) {
+                            startGame(); // Start the game when everything is loaded
+                        }
+                    }
+                );
+            }
+        );
+
+        // --- GAME START FUNCTION ---
+        const startGame = () => {
+            userLives = MAX_LIVES;
+            userWins = 0;
+            currentRound = 0;
+            gameActive = true;
+            gamePhase = 'INITIALIZING_GAME'; // New phase for initial setup
+            disableGameControls(); // Controls are disabled until first round starts
+            updateLivesDisplay();
+            updateStarsDisplay();
+            gameMessageDiv.style.display = 'none'; 
+            roundMessageDiv.style.display = 'none'; 
+            
+            // Set both hands to paper initially
+            currentUserPose = { ...basePose };
+            currentAiPose = { ...basePose };
+            updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+            updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+
+            // Start the first round after a slight delay
+            setTimeout(() => startRound(), 1000); // Give a moment before first round text
+        };
+
+
+        // --- RESIZE HANDLING ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Update orbit controls for camera movement
+
+            // Only proceed if both models are loaded
+            if (modelsLoadedCount === 2) { 
+                switch(gamePhase) {
+                    case 'HAND_TRANSITIONING':
+                    case 'RESETTING_HANDS':
+                        const elapsedTime = performance.now() - transitionStartTime;
+                        const progress = Math.min(elapsedTime / transitionDuration, 1);
+
+                        // Interpolate user hand
+                        for (const finger in currentUserPose) {
+                            currentUserPose[finger] = userStartPoseForTransition[finger] + (userTargetPose[finger] - userStartPoseForTransition[finger]) * progress;
+                        }
+                        updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                        
+                        // Interpolate AI hand
+                        for (const finger in currentAiPose) {
+                            currentAiPose[finger] = aiStartPoseForTransition[finger] + (aiTargetPose[finger] - aiStartPoseForTransition[finger]) * progress;
+                        }
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+
+                        if (progress === 1) {
+                            isTransitioning = false; // Transition complete
+                            
+                            currentUserPose = { ...userTargetPose }; 
+                            currentAiPose = { ...aiTargetPose }; 
+
+                            // Handle phase transition after current animation completes
+                            if (gamePhase === 'HAND_TRANSITIONING') {
+                                gamePhase = 'DISPLAY_OUTCOME';
+                                idleMessageDisplayed = false; 
+                                idleMessageDiv.style.display = 'none'; 
+                                lastActivityTime = performance.now(); 
+                                if (!gameOutcomeDetermined) {
+                                    gameOutcomeDetermined = true;
+                                    const result = determineWinner(window.userChoiceDuringRound, window.aiChoiceDuringRound);
+                                    handleGameOutcome(result);
+                                }
+                            } else if (gamePhase === 'RESETTING_HANDS') {
+                                // Hands are now reset, move to next round preparation
+                                gamePhase = 'WAITING_FOR_USER_INPUT'; // Ready for next user input, which also triggers next round message
+                                idleMessageDisplayed = false;
+                                idleMessageDiv.style.display = 'none';
+                                enableGameControls(); // Re-enable controls
+                                lastActivityTime = performance.now();
+                                // Start next round's message immediately after reset
+                                startRound(); 
+                            }
+                        }
+                        break;
+
+                    case 'WAITING_FOR_USER_INPUT':
+                        // Check for idle animation
+                        const inactivityDuration = performance.now() - lastActivityTime;
+                        if (inactivityDuration >= INACTIVITY_THRESHOLD && !idleAnimationActive) {
+                            idleAnimationActive = true;
+                            idleAnimationStartTime = performance.now();
+                            idleMessageDisplayed = true; 
+                            idleMessageDiv.style.display = 'block';
+                        }
+
+                        if (idleAnimationActive) {
+                            const idleElapsedTime = performance.now() - idleAnimationStartTime;
+                            const totalIdleProgress = idleElapsedTime / IDLE_ANIM_CYCLE_DURATION; 
+
+                            if (totalIdleProgress < IDLE_ANIMATION_PLAY_COUNT) {
+                                const cycleProgress = (idleElapsedTime % IDLE_ANIM_CYCLE_DURATION) / IDLE_ANIM_CYCLE_DURATION;
+                                const phase = (Math.sin(cycleProgress * Math.PI * 2 - Math.PI / 2) + 1) / 2; 
+
+                                for (const finger in currentUserPose) {
+                                    const diff = halfStoneIdlePose[finger] - basePose[finger];
+                                    currentUserPose[finger] = basePose[finger] + diff * phase; 
+                                }
+                                updateHandPose(userBoneMap, userFingerJoints, currentUserPose); 
+                            } else {
+                                idleAnimationActive = false;
+                                currentUserPose = { ...basePose }; 
+                                updateHandPose(userBoneMap, userFingerJoints, currentUserPose); 
+                            }
+                            idleMessageDiv.style.display = 'block';
+                        } else if (idleMessageDisplayed) {
+                            updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                            idleMessageDiv.style.display = 'block';
+                        } else {
+                            // Ensure hands are in basePose when waiting and not idling
+                            currentUserPose = { ...basePose };
+                            updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                            idleMessageDiv.style.display = 'none';
+                        }
+                        // AI hand always remains stable during user idle/waiting
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose); 
+                        break;
+                    
+                    case 'DISPLAY_OUTCOME':
+                        // Hands are held in place by their set currentPoses
+                        updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+                        // Game message is displayed by handleGameOutcome
+                        break;
+                    
+                    case 'INITIALIZING_ROUND':
+                        // Hands are already in basePose from startGame or previous round reset
+                        updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+                        // Round message is displayed by showRoundMessage
+                        break;
+
+                    case 'GAME_OVER':
+                        // Hands stay in last state. Game message is displayed.
+                        updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+                        break;
+
+                    case 'LOADING':
+                        // Do nothing specific, wait for models to load
+                        break;
+
+                    default:
+                        // Fallback, ensure hands are stable
+                        updateHandPose(userBoneMap, userFingerJoints, currentUserPose);
+                        updateHandPose(aiBoneMap, aiFingerJoints, currentAiPose);
+                        break;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate(); // Start the main animation loop
+    </script>
+</body>
+</html>
