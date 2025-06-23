@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Evasion</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: MoonHouse, sans-serif; /* Added sans-serif fallback */
+            background-color: #000;
+            color: #fff;
+            cursor: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 1.5em;
+            color: #00e6e6;
+            z-index: 10;
+            pointer-events: none; /* HUD elements should not block interaction */
+            padding-right: 20px;
+            box-sizing: border-box;
+        }
+
+        #hud-timer {
+            background-color: rgba(0, 20, 30, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 230, 230, 0.4);
+            /* Removed specific glowy box-shadow */
+        }
+
+        #health-bar-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00e6e6;
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        #health-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4d4d, #ff8c8c);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.02);
+                opacity: 0.8;
+            }
+        }
+
+        #health-bar.low-health {
+            animation: pulse-red 1s infinite alternate;
+        }
+
+        #damage-vignette, #heal-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Vignettes should not block interaction */
+            z-index: 50;
+            transition: box-shadow 0.2s ease-out;
+            box-shadow: inset 0 0 150px 50px rgba(0, 0, 0, 0); /* Default transparent */
+        }
+
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 10, 20, 0.95);
+            display: none; /* Controlled by JS */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            text-align: center;
+            z-index: 100;
+            cursor: default;
+            font-family: SpaceNova,MoonHouse, sans-serif; /* Added sans-serif fallback */
+            pointer-events: none; /* Initially non-interactive when hidden */
+        }
+
+        #game-over-screen.active {
+            pointer-events: auto; /* Becomes interactive when active */
+        }
+
+        #game-over-screen h2 {
+            font-size: 2em;
+            color: #ff4d4d;
+            margin-bottom: 20px;
+        }
+
+        #game-over-screen p {
+            font-size: 1.1em;
+            color: #00e6e6;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            z-index: 200;
+            transition: opacity 0.5s ease;
+            font-family: MoonHouse, sans-serif; /* Added sans-serif fallback */
+        }
+
+        #tutorial-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1em;
+            text-align: center;
+            z-index: 20;
+            transition: opacity 3s ease-out; /* Fade out over 3 seconds */
+            pointer-events: none; /* Make it non-interactive */
+            opacity: 1; /* Start fully visible */
+        }
+
+        @media (max-width: 768px) {
+            #hud {
+                font-size: 1em;
+                padding-right: 10px;
+            }
+
+            #hud-timer {
+                padding: 8px 15px;
+            }
+
+            #health-bar-container {
+                width: 180px;
+                height: 25px;
+                bottom: 15px;
+            }
+
+            #game-over-screen {
+                font-size: 1.2em;
+            }
+
+            #game-over-screen h2 {
+                font-size: 1.8em;
+            }
+
+            #game-over-screen p {
+                font-size: 1em;
+            }
+        }
+
+        /* Font-face declarations (assuming these files are provided alongside HTML) */
+        @font-face {
+            font-family: 'SpaceNova';
+            src: url('fonts/SpaceNova.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'MoonHouse';
+            src: url('fonts/Moonhouse.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
+
+    <!-- Importmap for Three.js modules -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <div id="loading-screen">Loading Assets...</div>
+
+    <div id="game-content" style="opacity: 0;">
+        <div id="damage-vignette"></div>
+        <div id="heal-vignette"></div> <!-- New element for healing visual feedback -->
+        <div id="hud">
+            <div id="hud-timer"><span id="score">00:00</span></div>
+        </div>
+        <div id="health-bar-container">
+            <div id="health-bar"></div>
+        </div>
+        <div id="game-over-screen">
+            <h2>MISSION FAILED</h2>
+            <p>Survived: <span id="final-score">00:00</span></p>
+        </div>
+        <div id="tutorial-text">
+            Use ARROW keys to move.<br><p style="font-family: SpaceNova;">Evade asteroids!</p>
+        </div>
+    </div>
+
+    <!-- Main application logic using the importmap -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- Core Variables ---
+        let scene, camera, renderer, clock, loader;
+        let score = 0, gameOver = false, timeSurvived = 0;
+        let health, maxHealth = 100;
+        let playerSpeed = 12;
+        const keys = {};
+        let asteroidSpeed = 15.0;
+        let objectiveTime = 60; 
+        let autoRestartTimeout; 
+        const HEAL_AMOUNT = 25; // Amount of health healed per planet collision
+
+        // --- Game Objects ---
+        const asteroids = [];
+        const healPlanets = []; // Array to hold healing planets
+        let starfield;
+        let commonAsteroidModel, otherAsteroidModel, healPlanetModel;
+        let playerBoundingSphere; 
+
+        // --- DOM Elements ---
+        const scoreEl = document.getElementById('score');
+        const finalScoreEl = document.getElementById('final-score');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const healthBar = document.getElementById('health-bar');
+        const gameContent = document.getElementById('game-content');
+        const loadingScreen = document.getElementById('loading-screen');
+        const damageVignette = document.getElementById('damage-vignette');
+        const healVignette = document.getElementById('heal-vignette'); // New DOM element for healing vignette
+        const tutorialText = document.getElementById('tutorial-text');
+
+        // --- Model Paths ---
+        const COMMON_ASTEROID_PATH = 'models/a1.glb';
+        const OTHER_ASTEROID_PATH = 'models/a2.glb';
+        const HEAL_PLANET_PATH = 'models/blue.glb'; // Path to the healing planet model
+
+        async function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x020208, 100, 200);
+            clock = new THREE.Clock();
+            loader = new GLTFLoader();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 2000);
+            camera.position.set(0, 0, 0);
+
+            playerBoundingSphere = new THREE.Sphere(camera.position, 3.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            gameContent.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0x808080);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+            dirLight.position.set(10, 10, -20);
+            scene.add(dirLight);
+
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight2.position.set(-10, -5, -15);
+            scene.add(dirLight2);
+
+            await loadAssets();
+            createStarfield();
+            
+            document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+            document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+            window.addEventListener('resize', onWindowResize);
+
+            loadingScreen.style.opacity = '0';
+            gameContent.style.opacity = '1';
+
+            // Start fading out tutorial text after 3 seconds
+            if (tutorialText) {
+                setTimeout(() => {
+                    tutorialText.style.opacity = '0';
+                }, 3000);
+            }
+
+            resetGame();
+            animate();
+        }
+
+        async function loadAssets() {
+            const loadModel = (url) => new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
+            try {
+                const [commonGltf, otherGltf, healPlanetGltf] = await Promise.all([
+                    loadModel(COMMON_ASTEROID_PATH),
+                    loadModel(OTHER_ASTEROID_PATH),
+                    loadModel(HEAL_PLANET_PATH) // Load the healing planet model
+                ]);
+                commonAsteroidModel = commonGltf.scene;
+                otherAsteroidModel = otherGltf.scene;
+                healPlanetModel = healPlanetGltf.scene;
+            } catch (error) {
+                loadingScreen.textContent = "Error loading models. Check paths.";
+                console.error("Asset loading error:", error);
+            }
+        }
+
+        function createStarfield() {
+            const starGeo = new THREE.BufferGeometry();
+            const starVertices = [];
+            for (let i = 0; i < 20000; i++) {
+                starVertices.push((Math.random() - 0.5) * 500, (Math.random() - 0.5) * 500, (Math.random() - 0.5) * 2000);
+            }
+            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            starfield = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 }));
+            scene.add(starfield);
+        }
+
+        function spawnAsteroid() {
+            if (!commonAsteroidModel || !otherAsteroidModel) return;
+
+            const sourceModel = Math.random() < 0.7 ? commonAsteroidModel : otherAsteroidModel;
+            const asteroid = sourceModel.clone(true);
+
+            const scale = Math.random() * 0.6 + 0.3;
+            asteroid.scale.set(scale, scale, scale);
+
+            asteroid.position.set((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, -200 - Math.random() * 200);
+
+            asteroid.userData.boundingSphere = new THREE.Sphere(asteroid.position, scale * 1.2);
+            asteroid.userData.rotationSpeed = new THREE.Vector3(Math.random() * 0.5, Math.random() * 0.5, 0);
+
+            asteroids.push(asteroid);
+            scene.add(asteroid);
+        }
+
+        function spawnHealPlanet() {
+            if (!healPlanetModel) return;
+
+            const planet = healPlanetModel.clone(true);
+            const scale = Math.random() * 2 + 3; // Make healing planets larger
+            planet.scale.set(scale, scale, scale);
+
+            planet.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 80, -300 - Math.random() * 300);
+            planet.userData.boundingSphere = new THREE.Sphere(planet.position, scale * 0.5); // Adjust radius for planet
+            planet.userData.rotationSpeed = new THREE.Vector3(Math.random() * 0.1, Math.random() * 0.1, 0);
+            planet.userData.isHealPlanet = true; // Mark as a healing planet
+
+            healPlanets.push(planet);
+            scene.add(planet);
+        }
+        
+        // Helper function to format time to MM:SS
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+            return `${formattedMinutes}:${formattedSeconds}`;
+        }
+
+        function animate() {
+            const delta = clock.getDelta();
+            requestAnimationFrame(animate);
+
+            if (!gameOver) {
+                updatePlayerMovement(delta);
+                updateAsteroids(delta);
+                updateHealPlanets(delta); // Update healing planets
+                playerBoundingSphere.center.copy(camera.position);
+                checkCollisions();
+                timeSurvived += delta;
+                scoreEl.innerText = formatTime(timeSurvived); // Format time
+
+                if (Math.floor(timeSurvived) >= objectiveTime) {
+                    // Game win condition could be handled here
+                }
+            }
+
+            starfield.position.z = (starfield.position.z + asteroidSpeed * 0.2 * delta) % 200;
+            renderer.render(scene, camera);
+        }
+
+        function updatePlayerMovement(delta) {
+            const moveAmount = playerSpeed * delta;
+            const bounds = { x: 35, y: 25 };
+
+            if (keys['arrowleft'] || keys['a']) camera.position.x -= moveAmount;
+            if (keys['arrowright'] || keys['d']) camera.position.x += moveAmount;
+            if (keys['arrowup'] || keys['w']) camera.position.y += moveAmount;
+            if (keys['arrowdown'] || keys['s']) camera.position.y -= moveAmount;
+
+            camera.rotation.z = (camera.position.x / bounds.x) * -0.1;
+            camera.rotation.x = (camera.position.y / bounds.y) * 0.1;
+
+            camera.position.x = THREE.MathUtils.clamp(camera.position.x, -bounds.x, bounds.x);
+            camera.position.y = THREE.MathUtils.clamp(camera.position.y, -bounds.y, bounds.y);
+        }
+
+        function updateAsteroids(delta) {
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+                asteroid.position.z += asteroidSpeed * delta;
+                asteroid.rotation.x += asteroid.userData.rotationSpeed.x * delta;
+                asteroid.rotation.y += asteroid.userData.rotationSpeed.y * delta;
+
+                asteroid.userData.boundingSphere.center.copy(asteroid.position);
+
+                if (asteroid.position.z > camera.position.z + 10) {
+                    scene.remove(asteroid);
+                    asteroids.splice(i, 1);
+                }
+            }
+            if (asteroids.length < 30) spawnAsteroid();
+        }
+
+        function updateHealPlanets(delta) {
+            for (let i = healPlanets.length - 1; i >= 0; i--) {
+                const planet = healPlanets[i];
+                planet.position.z += asteroidSpeed * delta; // Planets also move towards player
+                planet.rotation.x += planet.userData.rotationSpeed.x * delta;
+                planet.rotation.y += planet.userData.rotationSpeed.y * delta;
+
+                planet.userData.boundingSphere.center.copy(planet.position);
+
+                if (planet.position.z > camera.position.z + 10) {
+                    scene.remove(planet);
+                    healPlanets.splice(i, 1);
+                }
+            }
+            // Spawn new healing planet if none exist (or based on a timer/probability)
+            if (healPlanets.length < 1 && Math.random() < 0.0005) { // Low probability for spawning
+                spawnHealPlanet();
+            }
+        }
+
+        function checkCollisions() {
+            // Check asteroid collisions
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+                if (playerBoundingSphere.intersectsSphere(asteroid.userData.boundingSphere)) {
+                    playerHit(25);
+                    scene.remove(asteroid);
+                    asteroids.splice(i, 1);
+                    break; 
+                }
+            }
+
+            // Check healing planet collisions
+            for (let i = healPlanets.length - 1; i >= 0; i--) {
+                const planet = healPlanets[i];
+                if (playerBoundingSphere.intersectsSphere(planet.userData.boundingSphere)) {
+                    healPlayer(HEAL_AMOUNT);
+                    scene.remove(planet);
+                    healPlanets.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
+        function playerHit(damage) {
+            if (gameOver) return;
+            health -= damage;
+            updateHealthBar();
+
+            damageVignette.style.boxShadow = 'inset 0 0 150px 50px rgba(255, 0, 0, 0.7)';
+            setTimeout(() => {
+                damageVignette.style.boxShadow = 'inset 0 0 150px 50px rgba(255, 0, 0, 0)';
+            }, 200);
+
+            if (health <= 0) { health = 0; endGame(); }
+        }
+
+        function healPlayer(amount) {
+            if (gameOver) return;
+            health = Math.min(maxHealth, health + amount);
+            updateHealthBar();
+
+            healVignette.style.boxShadow = 'inset 0 0 150px 50px rgba(0, 255, 0, 0.4)'; /* Green flash */
+            setTimeout(() => {
+                healVignette.style.boxShadow = 'inset 0 0 150px 50px rgba(0, 0, 0, 0)';
+            }, 200);
+        }
+
+        function resetGame() {
+            if (autoRestartTimeout) {
+                clearTimeout(autoRestartTimeout);
+                autoRestartTimeout = null;
+            }
+
+            asteroids.forEach(a => scene.remove(a));
+            asteroids.length = 0;
+            healPlanets.forEach(p => scene.remove(p)); // Clear healing planets
+            healPlanets.length = 0;
+
+            timeSurvived = 0;
+            health = maxHealth;
+            gameOver = false;
+
+            camera.position.set(0, 0, 0);
+
+            scoreEl.innerText = formatTime(0); // Reset time to 00:00
+            updateHealthBar();
+            gameOverScreen.style.display = 'none';
+            gameOverScreen.style.pointerEvents = 'none'; 
+            gameOverScreen.classList.remove('active'); 
+            document.body.style.cursor = 'none';
+            asteroidSpeed = 15.0;
+
+            if (tutorialText) {
+                tutorialText.style.opacity = '1';
+                setTimeout(() => {
+                    tutorialText.style.opacity = '0';
+                }, 3000);
+            }
+        }
+
+        function endGame() {
+            gameOver = true;
+            document.body.style.cursor = 'default';
+            finalScoreEl.innerText = formatTime(timeSurvived); // Format final time
+            gameOverScreen.style.display = 'flex';
+            gameOverScreen.style.pointerEvents = 'auto'; 
+            gameOverScreen.classList.add('active'); 
+
+            autoRestartTimeout = setTimeout(() => {
+                restartGame();
+            }, 5000); 
+        }
+
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            gameOverScreen.style.pointerEvents = 'none'; 
+            gameOverScreen.classList.remove('active'); 
+            resetGame();
+        }
+
+        function updateHealthBar() {
+            const percentage = (health / maxHealth) * 100;
+            healthBar.style.width = `${percentage}%`;
+            const hue = (percentage / 100) * 120;
+            healthBar.style.background = `linear-gradient(90deg, hsl(${hue}, 100%, 40%), hsl(${hue}, 100%, 60%))`;
+            if (percentage < 30) {
+                healthBar.classList.add('low-health');
+            } else {
+                healthBar.classList.remove('low-health');
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init();
+    </script>
+</body>
+</html>
