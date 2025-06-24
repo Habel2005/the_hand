@@ -334,16 +334,171 @@
             z-index: 10;
         }
 
-        /* --- Page transition to black --- */
-        /* Modified to also fade out the app-container directly */
-        body.fade-out-to-black {
-            background-color: #000 !important;
-            transition: background-color 0.3s ease-out;
+        /* --- Wishlist icon styles --- */
+        .wishlist-icon {
+            position: absolute;
+            top: 5px;
+            left: 5px; /* Position top-left */
+            width: 24px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 11; /* Above other elements in image container */
+            transition: background-color 0.2s, transform 0.2s;
         }
-        body.fade-out-to-black #app-container {
-            opacity: 0; /* Fade out the main content container */
-            pointer-events: none; /* Disable clicks during fade */
-            transition: opacity 0.3s ease-out; /* Match background transition speed */
+        .wishlist-icon:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+        .wishlist-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: #bdbdbd; /* Default grey for unliked */
+            transition: fill 0.2s;
+        }
+        .wishlist-icon.liked svg {
+            fill: #360012; /* Pink for liked */
+        }
+
+        /* --- Wishlist content display --- */
+        #wishlist-content {
+            display: none; /* Hidden by default */
+            /* Add styles specific to wishlist display if it's different from game-cards-grid */
+        }
+        #wishlist-content .game-cards-grid {
+            /* May need specific styles if the grid behavior changes for wishlist */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            #app-container {
+                flex-direction: column; /* Stack sidebar and main content vertically */
+                height: auto;
+                min-height: 95vh;
+                border-radius: 0; /* Full width on smaller screens */
+            }
+            #sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #f0f0f0;
+                padding: 15px 10px;
+                flex-direction: row; /* Nav links side-by-side */
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding-top: 0; /* No top padding when stacked */
+            }
+            .sidebar-section-title {
+                display: none; /* Hide section titles on small screens */
+            }
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
+            .nav-link.active {
+                padding-left: 12px; /* Adjust for smaller screens */
+            }
+            #main-content-area {
+                padding: 15px;
+                padding-top: 0; /* No top padding when stacked */
+            }
+            .app-main-title {
+                font-size: 2em;
+                margin-bottom: 15px;
+            }
+            .new-game-button {
+                padding: 8px 12px;
+                font-size: 0.8em;
+                margin-bottom: 15px;
+            }
+            .new-game-button svg {
+                width: 16px;
+                height: 16px;
+            }
+            .section-header {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            .game-cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Even smaller cards */
+                gap: 10px;
+            }
+            .game-card-image-container {
+                height: 100px;
+            }
+            .game-card-title {
+                font-size: 0.85em;
+            }
+            .wishlist-icon {
+                width: 20px;
+                height: 20px;
+            }
+            .wishlist-icon svg {
+                width: 14px;
+                height: 14px;
+            }
+            .coming-soon-overlay {
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding-top: 10px;
+            }
+            #app-container {
+                width: 98%;
+                min-height: calc(100vh - 20px);
+            }
+            #sidebar {
+                padding: 10px;
+            }
+            .nav-link {
+                font-size: 0.75em;
+                padding: 6px 10px;
+            }
+            #main-content-area {
+                padding: 10px;
+            }
+            .app-main-title {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+            .new-game-button {
+                padding: 6px 10px;
+                font-size: 0.7em;
+            }
+            .section-header {
+                font-size: 1em;
+            }
+            .game-cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            .game-card-image-container {
+                height: 80px;
+            }
+            .game-card-content {
+                padding: 8px;
+            }
+            .game-card-title {
+                font-size: 0.75em;
+            }
+            .wishlist-icon {
+                width: 18px;
+                height: 18px;
+            }
+            .wishlist-icon svg {
+                width: 12px;
+                height: 12px;
+            }
+            .coming-soon-overlay {
+                font-size: 0.8em;
+            }
         }
     </style>
 </head>
@@ -351,9 +506,10 @@
 
     <!-- Loader Container (Now includes video again) -->
     <div id="loader-container">
-        <!-- Re-added loader video -->
-        <video id="loader-video" playsinline muted autoplay>
-            <source src="assets/l3.mp4" type="video/mp4">
+        <!-- Loader video with a placeholder path and onerror for robust loading -->
+        <video id="loader-video" playsinline muted autoplay loop>
+            <source src="assets/l3.mp4" type="video/mp4" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/video/2023/11/27/191764-889812497_medium.mp4';">
+            <source src="https://cdn.pixabay.com/video/2023/11/27/191764-889812497_medium.webm" type="video/webm">
             Your browser does not support the video tag.
         </video>
         <p style="position: relative; z-index: 1;">Loading Game Library...</p>
@@ -368,12 +524,12 @@
         <aside id="sidebar">
             <nav>
                 <div class="sidebar-section-title">Games</div>
-                <a href="#" class="nav-link active">
+                <a href="#" class="nav-link active" data-view="all-games">
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                     <span>All Games</span>
                 </a>
-                <a href="#" class="nav-link">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 0 1 7 2.05L12 10l-2 3.5l4 2.5 1 4 4-2"></path><path d="M18 10a4 4 0 0 0-4 4v2"></path><path d="M12 12l3-3"></path><path d="M18 18a4 4 0 0 0-4-4v2"></path></svg>
+                <a href="#" class="nav-link" data-view="wishlist">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                     <span>Wishlist</span>
                 </a>
             </nav>
@@ -384,81 +540,112 @@
             <!-- Professional Title Placement -->
             <h1 class="app-main-title">Game Library</h1>
 
-            <!-- New Game Button -->
-            <a href="#" class="new-game-button">
+            <!-- New Game Button - now only appears on 'All Games' view -->
+            <a href="#" class="new-game-button" id="new-game-button">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 New Game
             </a>
 
-            <h2 class="section-header">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Playing
-            </h2>
-            <div class="game-cards-grid">
-                <!-- Interactive 3D Hand Game Card - Playing -->
-                <a href="the_hand.html" class="game-card" data-game-id="hand-battle-arena">
-                    <div class="game-card-image-container">
-                        <img src="https://placehold.co/400x250/EAEAEA/212121?text=Hand+Game+Preview" alt="Interactive 3D Hand Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Hand+Game';">
-                        <!-- Last played indicator will be inserted here by JS -->
-                    </div>
-                    <div class="game-card-content">
-                        <h3 class="game-card-title">Hand Battle Arena</h3>
-                    </div>
-                </a>
+            <!-- Section for "Playing" Games -->
+            <div class="game-cards-section" id="playing-section">
+                <h2 class="section-header">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Playing
+                </h2>
+                <div class="game-cards-grid">
+                    <!-- Interactive 3D Hand Game Card - Playing -->
+                    <a href="the_hand.html" class="game-card" data-game-id="hand-battle-arena" data-game-title="Hand Battle Arena" data-game-image="assets/hand.png">
+                        <div class="game-card-image-container">
+                            <img src="assets/hand.png" alt="Interactive 3D Hand Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Hand+Game';">
+                            <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3 class="game-card-title">Hand Battle Arena</h3>
+                        </div>
+                    </a>
 
-                <!-- Example Playing Game 2 -->
-                <a href="#" class="game-card coming-soon" data-game-id="forest-quest">
-                    <div class="game-card-image-container">
-                        <img src="https://placehold.co/400x250/EAEAEA/212121?text=Adventure+Game+Preview" alt="Adventure Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Adventure+Game';">
-                        <div class="coming-soon-overlay">Coming Soon</div>
-                    </div>
-                    <div class="game-card-content">
-                        <h3 class="game-card-title">Forest Quest</h3>
-                    </div>
-                </a>
+                    <!-- Example Playing Game 2 -->
+                    <a href="space.html" class="game-card" data-game-id="space-xplore" data-game-title="Space Xplore" data-game-image="assets/space.png">
+                        <div class="game-card-image-container">
+                            <img src="assets/space.png" alt="Adventure Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Adventure+Game';">
+                            <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3 class="game-card-title">Space Xplore</h3>
+                        </div>
+                    </a>
 
-                <!-- Example Playing Game 3 -->
-                <a href="#" class="game-card coming-soon" data-game-id="urban-utopia">
-                    <div class="game-card-image-container">
-                        <img src="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview" alt="City Builder" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=City+Builder';">
-                        <div class="coming-soon-overlay">Coming Soon</div>
-                    </div>
-                    <div class="game-card-content">
-                        <h3 class="game-card-title">Urban Utopia</h3>
-                    </div>
-                </a>
+                    <!-- Example Playing Game 3 -->
+                    <a href="#" class="game-card coming-soon" data-game-id="urban-utopia" data-game-title="Urban Utopia" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview">
+                        <div class="game-card-image-container">
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview" alt="City Builder" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=City+Builder';">
+                            <div class="coming-soon-overlay">Coming Soon</div>
+                            <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3 class="game-card-title">Urban Utopia</h3>
+                        </div>
+                    </a>
+                </div>
             </div>
 
-            <h2 class="section-header">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                New Releases
-            </h2>
-            <div class="game-cards-grid">
-                <!-- New Game: Space Shooter Card -->
-                <div class="game-card coming-soon" data-game-id="cosmic-fury">
-                    <div class="game-card-image-container">
-                        <img src="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview" alt="Space Shooter" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Space+Shooter';">
-                        <div class="coming-soon-overlay">Coming Soon</div>
+            <!-- Section for "New Releases" Games -->
+            <div class="game-cards-section" id="new-releases-section">
+                <h2 class="section-header">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    New Releases
+                </h2>
+                <div class="game-cards-grid">
+                    <!-- New Game: Space Shooter Card -->
+                    <a href="space_shooter.html" class="game-card" data-game-id="cosmic-fury" data-game-title="Cosmic Fury" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview">
+                        <div class="game-card-image-container">
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview" alt="Space Shooter" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Space+Shooter';">
+                            <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3 class="game-card-title">Cosmic Fury</h3>
+                        </div>
+                    </a>
+
+                    <!-- New Game: Puzzle Adventure Card -->
+                    <div class="game-card coming-soon" data-game-id="chronos-enigma" data-game-title="Chronos Enigma" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview">
+                        <div class="game-card-image-container">
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview" alt="Puzzle Adventure" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Puzzle+Game';">
+                            <div class="coming-soon-overlay">Coming Soon</div>
+                            <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="game-card-content">
+                            <h3 class="game-card-title">Chronos Enigma</h3>
+                        </div>
                     </div>
-                    <div class="game-card-content">
-                        <h3 class="game-card-title">Cosmic Fury</h3>
-                    </div>
+
+                    <!-- Add more game cards here following the same structure -->
+
                 </div>
-
-                <!-- New Game: Puzzle Adventure Card -->
-                <div class="game-card coming-soon" data-game-id="chronos-enigma">
-                    <div class="game-card-image-container">
-                        <img src="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview" alt="Puzzle Adventure" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Puzzle+Game';">
-                        <div class="coming-soon-overlay">Coming Soon</div>
-                    </div>
-                    <div class="game-card-content">
-                        <h3 class="game-card-title">Chronos Enigma</h3>
-                    </div>
-                </div>
-
-                <!-- Add more game cards here following the same structure -->
-
             </div>
+
+            <!-- Wishlist Content Display Area -->
+            <div class="game-cards-section" id="wishlist-content" style="display: none;">
+                <h2 class="section-header">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    My Wishlist
+                </h2>
+                <div class="game-cards-grid" id="wishlist-grid">
+                    <!-- Wishlist items will be rendered here by JavaScript -->
+                </div>
+                 <p id="empty-wishlist-message" style="display: none; text-align: center; color: #6c757d; margin-top: 50px;">Your wishlist is empty. Add some games!</p>
+            </div>
+
         </main>
     </div>
 
@@ -470,10 +657,19 @@
             const appContainer = document.getElementById('app-container');
             const body = document.body;
 
-            // Check if loader has already been shown in this session
+            // Content sections
+            const allGamesSections = [
+                document.getElementById('playing-section'),
+                document.getElementById('new-releases-section')
+            ];
+            const wishlistContent = document.getElementById('wishlist-content');
+            const wishlistGrid = document.getElementById('wishlist-grid');
+            const emptyWishlistMessage = document.getElementById('empty-wishlist-message');
+            const newGameButton = document.getElementById('new-game-button');
+
+            // --- Loader Logic (One-time per session with video and progress bar) ---
             const loaderShown = sessionStorage.getItem('loaderShown');
 
-            // Hide app container initially
             appContainer.style.opacity = '0';
             appContainer.style.pointerEvents = 'none';
 
@@ -484,18 +680,16 @@
                 appContainer.style.transform = 'translateY(0)';
                 appContainer.style.pointerEvents = 'auto';
                 displayLastPlayed(); // Display last played immediately
+                renderWishlist(); // Render wishlist initially
             } else {
                 // Play video if it exists
                 if (loaderVideo) {
+                    // Ensure video starts playing immediately to be visible during loader duration
                     loaderVideo.play().catch(error => {
                         console.warn("Autoplay blocked or other video error:", error);
-                        // Fallback: If video autoplay fails, still proceed with the timed fade
+                        // Fallback: If video autoplay fails, the progress bar still works
                     });
                 }
-
-                // Run loader animation for progress bar (CSS animation will handle this)
-                // const loaderProgressBar = document.querySelector('.loader-progress-bar');
-                // loaderProgressBar.style.animationPlayState = 'running'; // No need, it's default 'running' with 'forwards'
 
                 // Simulate loading time (4 seconds)
                 setTimeout(() => {
@@ -510,58 +704,245 @@
                         appContainer.style.transform = 'translateY(0)';
                         appContainer.style.pointerEvents = 'auto';
                         displayLastPlayed(); // Display last played after content is visible
+                        renderWishlist(); // Render wishlist after content is visible
 
                         sessionStorage.setItem('loaderShown', 'true'); // Set flag
                     }, { once: true }); // Only run this event listener once
                 }, 4000); // Loader displays for 4 seconds
             }
 
-            // Function to display "Last Played" indicator
+            // --- Last Played Indicator Function ---
             function displayLastPlayed() {
                 const lastPlayedId = localStorage.getItem('lastPlayedGameId');
+                // Remove existing indicators first to ensure only one is active
+                document.querySelectorAll('.last-played-indicator').forEach(indicator => indicator.remove());
+
                 if (lastPlayedId) {
                     const gameCard = document.querySelector(`.game-card[data-game-id="${lastPlayedId}"]`);
                     if (gameCard) {
                         const imageContainer = gameCard.querySelector('.game-card-image-container');
-                        let indicator = imageContainer.querySelector('.last-played-indicator');
-                        if (!indicator) { // Create only if it doesn't exist
-                            indicator = document.createElement('div');
-                            indicator.classList.add('last-played-indicator');
-                            imageContainer.appendChild(indicator);
-                        }
-                        indicator.textContent = 'Last Played'; // Ensure text is set
+                        const indicator = document.createElement('div');
+                        indicator.classList.add('last-played-indicator');
+                        indicator.textContent = 'Last Played';
+                        imageContainer.appendChild(indicator);
                     }
                 }
             }
 
+            // --- Wishlist Functions ---
+            function getWishlist() {
+                try {
+                    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                    return wishlist;
+                } catch (e) {
+                    console.error("Error parsing wishlist from localStorage:", e);
+                    return [];
+                }
+            }
 
-            // Handle 'Coming Soon' cards (prevent navigation)
+            function saveWishlist(wishlist) {
+                localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            }
+
+            function toggleWishlist(gameId, gameTitle, gameImage) {
+                let wishlist = getWishlist();
+                const index = wishlist.findIndex(item => item.id === gameId);
+
+                if (index > -1) {
+                    // Item is in wishlist, remove it
+                    wishlist.splice(index, 1);
+                    console.log(`Removed ${gameTitle} from wishlist.`);
+                } else {
+                    // Item is not in wishlist, add it
+                    wishlist.push({ id: gameId, title: gameTitle, image: gameImage });
+                    console.log(`Added ${gameTitle} to wishlist.`);
+                }
+                saveWishlist(wishlist);
+                updateWishlistIcons(); // Update all icons
+                if (wishlistContent.style.display !== 'none') { // If wishlist view is active, re-render it
+                    renderWishlist();
+                }
+            }
+
+            function updateWishlistIcons() {
+                const wishlist = getWishlist();
+                document.querySelectorAll('.wishlist-icon').forEach(iconDiv => {
+                    const gameCard = iconDiv.closest('.game-card');
+                    if (gameCard) {
+                        const gameId = gameCard.dataset.gameId;
+                        if (wishlist.some(item => item.id === gameId)) {
+                            iconDiv.classList.add('liked');
+                        } else {
+                            iconDiv.classList.remove('liked');
+                        }
+                    }
+                });
+            }
+
+            function renderWishlist() {
+                const wishlist = getWishlist();
+                wishlistGrid.innerHTML = ''; // Clear current display
+
+                if (wishlist.length === 0) {
+                    emptyWishlistMessage.style.display = 'block';
+                } else {
+                    emptyWishlistMessage.style.display = 'none';
+                    wishlist.forEach(game => {
+                        const gameCard = document.createElement('a');
+                        gameCard.href = `#`; // Wishlist items are not directly clickable to launch, only for management
+                        gameCard.classList.add('game-card');
+                        // Add data attributes for ID, title, and image for consistency
+                        gameCard.dataset.gameId = game.id;
+                        gameCard.dataset.gameTitle = game.title;
+                        gameCard.dataset.gameImage = game.image;
+
+                        // Check if the original game card had 'coming-soon'
+                        const originalCard = document.querySelector(`.game-card[data-game-id="${game.id}"]`);
+                        if (originalCard && originalCard.classList.contains('coming-soon')) {
+                            gameCard.classList.add('coming-soon');
+                        }
+
+
+                        gameCard.innerHTML = `
+                            <div class="game-card-image-container">
+                                <img src="${game.image}" alt="${game.title}" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Game';">
+                                ${gameCard.classList.contains('coming-soon') ? '<div class="coming-soon-overlay">Coming Soon</div>' : ''}
+                                <div class="wishlist-icon liked">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="game-card-content">
+                                <h3 class="game-card-title">${game.title}</h3>
+                            </div>
+                        `;
+                        wishlistGrid.appendChild(gameCard);
+                    });
+
+                    // Re-attach event listeners for wishlist icons on newly rendered cards
+                    wishlistGrid.querySelectorAll('.wishlist-icon').forEach(iconDiv => {
+                        iconDiv.addEventListener('click', (event) => {
+                            event.preventDefault(); // Prevent card navigation
+                            event.stopPropagation(); // Stop click from bubbling to card link
+
+                            const gameCard = iconDiv.closest('.game-card');
+                            const gameId = gameCard.dataset.gameId;
+                            const gameTitle = gameCard.dataset.gameTitle;
+                            const gameImage = gameCard.dataset.gameImage;
+                            toggleWishlist(gameId, gameTitle, gameImage);
+                        });
+                    });
+
+                     // Re-attach event listeners for game cards in wishlist grid (only if not coming soon)
+                    wishlistGrid.querySelectorAll('.game-card:not(.coming-soon)').forEach(gameCard => {
+                        gameCard.addEventListener('click', (event) => {
+                            event.preventDefault(); // Prevent immediate navigation
+
+                            const targetHref = gameCard.getAttribute('href'); // This will be '#' for wishlist cards initially
+                            const gameId = gameCard.getAttribute('data-game-id');
+
+                            // Find the original game card to get its true href
+                            const originalGameCard = document.querySelector(`.game-cards-section .game-card[data-game-id="${gameId}"]`);
+                            const actualHref = originalGameCard ? originalGameCard.getAttribute('href') : targetHref;
+
+                             if (actualHref && actualHref !== '#') { // Only navigate if it's a real game link
+                                localStorage.setItem('lastPlayedGameId', gameId);
+                                body.classList.add('fade-out-to-black');
+                                setTimeout(() => {
+                                    window.location.href = actualHref;
+                                }, 600);
+                            } else {
+                                console.log("Cannot launch game from wishlist directly. Navigate to 'All Games' to play.");
+                                // Optionally, show a message to the user that they can't launch from here
+                            }
+                        });
+                    });
+                }
+            }
+
+
+            // --- Content Switching Logic ---
+            document.querySelectorAll('.nav-link').forEach(navLink => {
+                navLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    // Remove active class from all nav links
+                    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                    // Add active class to clicked link
+                    navLink.classList.add('active');
+
+                    const view = navLink.dataset.view;
+
+                    // Hide all content sections and the new game button
+                    allGamesSections.forEach(section => section.style.display = 'none');
+                    wishlistContent.style.display = 'none';
+                    newGameButton.style.display = 'none';
+
+                    if (view === 'all-games') {
+                        allGamesSections.forEach(section => section.style.display = 'block');
+                        newGameButton.style.display = 'inline-flex'; // Show new game button
+                        displayLastPlayed(); // Re-display last played on all games view
+                    } else if (view === 'wishlist') {
+                        wishlistContent.style.display = 'block';
+                        renderWishlist(); // Render wishlist when selected
+                    }
+                     // Ensure no last played indicator on wishlist view as it's for game launch
+                     document.querySelectorAll('.last-played-indicator').forEach(indicator => indicator.remove());
+                });
+            });
+
+            // --- Initial setup: Display All Games by default ---
+            document.querySelector('.nav-link[data-view="all-games"]').click(); // Simulate click on 'All Games'
+
+
+            // --- Wishlist Icon Click Handlers ---
+            document.querySelectorAll('.wishlist-icon').forEach(iconDiv => {
+                iconDiv.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent card navigation
+                    event.stopPropagation(); // Stop click from bubbling to card link
+
+                    const gameCard = iconDiv.closest('.game-card');
+                    const gameId = gameCard.dataset.gameId;
+                    const gameTitle = gameCard.dataset.gameTitle;
+                    const gameImage = gameCard.dataset.gameImage;
+                    toggleWishlist(gameId, gameTitle, gameImage);
+                });
+            });
+
+            // Initial update of wishlist icons when page loads
+            updateWishlistIcons();
+
+            // Handle 'Coming Soon' cards (prevent navigation for these *specific* anchors)
             document.querySelectorAll('.game-card.coming-soon').forEach(gameCard => {
                 gameCard.addEventListener('click', (event) => {
-                    event.preventDefault(); // Prevent any default action for these cards
+                    event.preventDefault(); // Prevent navigation
                     console.log(`"${gameCard.querySelector('.game-card-title').textContent}" is coming soon!`);
                 });
             });
 
-            // --- Page transition to hand_game.html ---
+            // --- Page transition to game HTML ---
+            // This now applies to ALL .game-card elements that are NOT .coming-soon
+            // The logic inside renderWishlist() will handle launches from wishlist
             document.querySelectorAll('.game-card:not(.coming-soon)').forEach(gameCard => {
-                gameCard.addEventListener('click', (event) => {
-                    event.preventDefault(); // Prevent immediate navigation
+                 // Only add listener if it's NOT a card inside the wishlist grid initially
+                 if (!gameCard.closest('#wishlist-grid')) {
+                    gameCard.addEventListener('click', (event) => {
+                        event.preventDefault(); // Prevent immediate navigation
 
-                    const targetHref = gameCard.getAttribute('href');
-                    const gameId = gameCard.getAttribute('data-game-id');
+                        const targetHref = gameCard.getAttribute('href');
+                        const gameId = gameCard.getAttribute('data-game-id');
 
-                    // Save last played game
-                    localStorage.setItem('lastPlayedGameId', gameId);
+                        // Save last played game
+                        localStorage.setItem('lastPlayedGameId', gameId);
 
-                    // 1. Start fading out the current page's content (app-container) and change body background to black simultaneously
-                    body.classList.add('fade-out-to-black');
+                        // Start fading out the current page's content (app-container) and change body background to black simultaneously
+                        body.classList.add('fade-out-to-black');
 
-                    // 2. After a short delay (matching CSS transition), navigate to the new page
-                    setTimeout(() => {
-                        window.location.href = targetHref;
-                    }, 600); // Match this delay with the CSS transition duration (0.3s + buffer)
-                });
+                        // After a short delay (matching CSS transition), navigate to the new page
+                        setTimeout(() => {
+                            window.location.href = targetHref;
+                        }, 600); // Match this delay with the CSS transition duration (0.3s + buffer)
+                    });
+                }
             });
         });
     </script>

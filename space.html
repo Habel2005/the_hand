@@ -8,7 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            font-family: MoonHouse, sans-serif; /* Added sans-serif fallback */
+            font-family: MoonHouse, sans-serif;
             background-color: #000;
             color: #fff;
             cursor: none;
@@ -21,26 +21,83 @@
         #hud {
             position: absolute;
             top: 20px;
-            left: 0;
-            right: 0;
+            left: 20px; /* Aligned to the left */
+            right: 20px; /* Stretches across to allow timer on right */
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between; /* Space between left and right elements */
             align-items: center;
             font-size: 1.5em;
             color: #00e6e6;
             z-index: 10;
-            pointer-events: none; /* HUD elements should not block interaction */
-            padding-right: 20px;
+            padding-right: 0; /* No right padding on HUD itself */
             box-sizing: border-box;
+            gap: 15px;
         }
 
-        #hud-timer {
+        .hud-element {
             background-color: rgba(0, 20, 30, 0.7);
             padding: 10px 20px;
             border-radius: 8px;
             border: 1px solid rgba(0, 230, 230, 0.4);
-            /* Removed specific glowy box-shadow */
+            pointer-events: auto;
         }
+
+        #hud-timer { /* Timer remains a .hud-element */
+            /* No specific changes here, it will align to the right due to justify-content: space-between */
+        }
+        #hud-timer span { 
+            pointer-events: none; /* Text content itself remains non-interactive */
+        }
+
+        #game-info {
+            position: relative;
+            cursor: pointer;
+            pointer-events: auto;
+            /* New styles for the rounded "i" button */
+            width: 15px; /* Fixed width for a rounded button */
+            height: 25px; /* Fixed height for a rounded button */
+            border-radius: 35%; /* Make it perfectly round */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em; /* Size of the 'i' icon */
+            font-family: 'Times New Roman'; /* Apply font to the 'i' text */
+        }
+        /* Specific hover effect for the round button */
+        #game-info:hover {
+            background-color: rgba(0, 230, 230, 0.2); /* Subtle hover background */
+            box-shadow: 0 0 15px rgba(0, 230, 230, 0.5); /* Subtle glow on hover */
+        }
+
+        #info-overlay {
+            position: absolute;
+            top: 100%; /* Position below the INFO button */
+            left: 0; /* Align to the left of the INFO button */
+            background-color: rgba(0, 30, 50, 0.95);
+            border: 1px solid rgba(0, 230, 230, 0.6);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.5em;
+            color: #e0f7fa;
+            width: 200px;
+            max-width: 80vw;
+            text-align: left;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+            pointer-events: none;
+            z-index: 101;
+            font-family: sans-serif; /* Ensure overlay content uses MoonHouse */
+        }
+
+        #game-info:hover #info-overlay {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
 
         #health-bar-container {
             position: absolute;
@@ -79,16 +136,17 @@
             animation: pulse-red 1s infinite alternate;
         }
 
-        #damage-vignette, #heal-vignette {
+        #damage-vignette,
+        #heal-vignette {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Vignettes should not block interaction */
+            pointer-events: none;
             z-index: 50;
             transition: box-shadow 0.2s ease-out;
-            box-shadow: inset 0 0 150px 50px rgba(0, 0, 0, 0); /* Default transparent */
+            box-shadow: inset 0 0 150px 50px rgba(0, 0, 0, 0);
         }
 
         #game-over-screen {
@@ -98,7 +156,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 10, 20, 0.95);
-            display: none; /* Controlled by JS */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -106,12 +164,12 @@
             text-align: center;
             z-index: 100;
             cursor: default;
-            font-family: SpaceNova,MoonHouse, sans-serif; /* Added sans-serif fallback */
-            pointer-events: none; /* Initially non-interactive when hidden */
+            font-family: SpaceNova, MoonHouse, sans-serif;
+            pointer-events: none;
         }
 
         #game-over-screen.active {
-            pointer-events: auto; /* Becomes interactive when active */
+            pointer-events: auto;
         }
 
         #game-over-screen h2 {
@@ -138,7 +196,7 @@
             font-size: 2em;
             z-index: 200;
             transition: opacity 0.5s ease;
-            font-family: MoonHouse, sans-serif; /* Added sans-serif fallback */
+            font-family: MoonHouse, sans-serif;
         }
 
         #tutorial-text {
@@ -150,14 +208,15 @@
             font-size: 1em;
             text-align: center;
             z-index: 20;
-            transition: opacity 3s ease-out; /* Fade out over 3 seconds */
-            pointer-events: none; /* Make it non-interactive */
-            opacity: 1; /* Start fully visible */
+            transition: opacity 3s ease-out;
+            pointer-events: none;
+            opacity: 1;
         }
 
         @media (max-width: 768px) {
             #hud {
                 font-size: 1em;
+                padding-left: 10px; /* Adjusted padding for small screens */
                 padding-right: 10px;
             }
 
@@ -181,6 +240,17 @@
 
             #game-over-screen p {
                 font-size: 1em;
+            }
+
+            #game-info {
+                width: 35px;
+                height: 35px;
+                font-size: 1em;
+            }
+
+            #info-overlay {
+                width: 150px;
+                font-size: 0.7em;
             }
         }
 
@@ -215,9 +285,19 @@
 
     <div id="game-content" style="opacity: 0;">
         <div id="damage-vignette"></div>
-        <div id="heal-vignette"></div> <!-- New element for healing visual feedback -->
+        <div id="heal-vignette"></div>
         <div id="hud">
-            <div id="hud-timer"><span id="score">00:00</span></div>
+            <div id="game-info" class="hud-element">
+                i
+                <div id="info-overlay">
+                    <p><strong>Game Description:</strong></p>
+                    <p>Avoid asteroids:</p>
+                    <p>small and sharper one is dangerous</p>
+                    <p>while large rounded is better</p>
+                    <p>Blue planet restores health.</p>
+                </div>
+            </div>
+            <div id="hud-timer" class="hud-element"><span id="score">00:00</span></div>
         </div>
         <div id="health-bar-container">
             <div id="health-bar"></div>
@@ -227,7 +307,8 @@
             <p>Survived: <span id="final-score">00:00</span></p>
         </div>
         <div id="tutorial-text">
-            Use ARROW keys to move.<br><p style="font-family: SpaceNova;">Evade asteroids!</p>
+            Use ARROW keys to move.<br>
+            <p style="font-family: SpaceNova;color: #00e6e6;">Evade asteroids!</p>
         </div>
     </div>
 
@@ -243,16 +324,18 @@
         let playerSpeed = 12;
         const keys = {};
         let asteroidSpeed = 15.0;
-        let objectiveTime = 60; 
-        let autoRestartTimeout; 
+        let objectiveTime = 60;
+        let autoRestartTimeout;
         const HEAL_AMOUNT = 25; // Amount of health healed per planet collision
+        const ASTEROID_DAMAGE = 25; // Amount of damage taken per asteroid collision
+
 
         // --- Game Objects ---
         const asteroids = [];
         const healPlanets = []; // Array to hold healing planets
         let starfield;
         let commonAsteroidModel, otherAsteroidModel, healPlanetModel;
-        let playerBoundingSphere; 
+        let playerBoundingSphere;
 
         // --- DOM Elements ---
         const scoreEl = document.getElementById('score');
@@ -262,13 +345,17 @@
         const gameContent = document.getElementById('game-content');
         const loadingScreen = document.getElementById('loading-screen');
         const damageVignette = document.getElementById('damage-vignette');
-        const healVignette = document.getElementById('heal-vignette'); // New DOM element for healing vignette
+        const healVignette = document.getElementById('heal-vignette');
         const tutorialText = document.getElementById('tutorial-text');
+        const gameInfo = document.getElementById('game-info');
+        const infoOverlay = document.getElementById('info-overlay');
+        /* Removed playerSpeedDisplay etc. as they are no longer in the HTML game info */
+
 
         // --- Model Paths ---
         const COMMON_ASTEROID_PATH = 'models/a1.glb';
         const OTHER_ASTEROID_PATH = 'models/a2.glb';
-        const HEAL_PLANET_PATH = 'models/blue.glb'; // Path to the healing planet model
+        const HEAL_PLANET_PATH = 'models/blue.glb';
 
         async function init() {
             scene = new THREE.Scene();
@@ -298,13 +385,20 @@
 
             await loadAssets();
             createStarfield();
-            
+
             document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
             document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
             window.addEventListener('resize', onWindowResize);
 
+            // Fade out the loading screen and then remove it from interaction.
             loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none'; // This makes it unclickable
+            }, 500);
+
             gameContent.style.opacity = '1';
+            gameContent.style.pointerEvents = 'auto'; // Ensure pointer events are enabled on game content
+
 
             // Start fading out tutorial text after 3 seconds
             if (tutorialText) {
@@ -323,7 +417,7 @@
                 const [commonGltf, otherGltf, healPlanetGltf] = await Promise.all([
                     loadModel(COMMON_ASTEROID_PATH),
                     loadModel(OTHER_ASTEROID_PATH),
-                    loadModel(HEAL_PLANET_PATH) // Load the healing planet model
+                    loadModel(HEAL_PLANET_PATH)
                 ]);
                 commonAsteroidModel = commonGltf.scene;
                 otherAsteroidModel = otherGltf.scene;
@@ -367,18 +461,18 @@
             if (!healPlanetModel) return;
 
             const planet = healPlanetModel.clone(true);
-            const scale = Math.random() * 2 + 3; // Make healing planets larger
+            const scale = Math.random() * 2 + 3;
             planet.scale.set(scale, scale, scale);
 
             planet.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 80, -300 - Math.random() * 300);
-            planet.userData.boundingSphere = new THREE.Sphere(planet.position, scale * 0.5); // Adjust radius for planet
+            planet.userData.boundingSphere = new THREE.Sphere(planet.position, scale * 0.5);
             planet.userData.rotationSpeed = new THREE.Vector3(Math.random() * 0.1, Math.random() * 0.1, 0);
-            planet.userData.isHealPlanet = true; // Mark as a healing planet
+            planet.userData.isHealPlanet = true;
 
             healPlanets.push(planet);
             scene.add(planet);
         }
-        
+
         // Helper function to format time to MM:SS
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
@@ -388,6 +482,7 @@
             return `${formattedMinutes}:${formattedSeconds}`;
         }
 
+
         function animate() {
             const delta = clock.getDelta();
             requestAnimationFrame(animate);
@@ -395,11 +490,11 @@
             if (!gameOver) {
                 updatePlayerMovement(delta);
                 updateAsteroids(delta);
-                updateHealPlanets(delta); // Update healing planets
+                updateHealPlanets(delta);
                 playerBoundingSphere.center.copy(camera.position);
                 checkCollisions();
                 timeSurvived += delta;
-                scoreEl.innerText = formatTime(timeSurvived); // Format time
+                scoreEl.innerText = formatTime(timeSurvived);
 
                 if (Math.floor(timeSurvived) >= objectiveTime) {
                     // Game win condition could be handled here
@@ -446,7 +541,7 @@
         function updateHealPlanets(delta) {
             for (let i = healPlanets.length - 1; i >= 0; i--) {
                 const planet = healPlanets[i];
-                planet.position.z += asteroidSpeed * delta; // Planets also move towards player
+                planet.position.z += asteroidSpeed * delta;
                 planet.rotation.x += planet.userData.rotationSpeed.x * delta;
                 planet.rotation.y += planet.userData.rotationSpeed.y * delta;
 
@@ -457,8 +552,8 @@
                     healPlanets.splice(i, 1);
                 }
             }
-            // Spawn new healing planet if none exist (or based on a timer/probability)
-            if (healPlanets.length < 1 && Math.random() < 0.0005) { // Low probability for spawning
+            // Increased probability for spawning healing planets (more frequent)
+            if (healPlanets.length < 1 && Math.random() < 0.02) {
                 spawnHealPlanet();
             }
         }
@@ -468,10 +563,10 @@
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const asteroid = asteroids[i];
                 if (playerBoundingSphere.intersectsSphere(asteroid.userData.boundingSphere)) {
-                    playerHit(25);
+                    playerHit(ASTEROID_DAMAGE);
                     scene.remove(asteroid);
                     asteroids.splice(i, 1);
-                    break; 
+                    break;
                 }
             }
 
@@ -519,7 +614,7 @@
 
             asteroids.forEach(a => scene.remove(a));
             asteroids.length = 0;
-            healPlanets.forEach(p => scene.remove(p)); // Clear healing planets
+            healPlanets.forEach(p => scene.remove(p));
             healPlanets.length = 0;
 
             timeSurvived = 0;
@@ -528,11 +623,11 @@
 
             camera.position.set(0, 0, 0);
 
-            scoreEl.innerText = formatTime(0); // Reset time to 00:00
+            scoreEl.innerText = formatTime(0);
             updateHealthBar();
             gameOverScreen.style.display = 'none';
-            gameOverScreen.style.pointerEvents = 'none'; 
-            gameOverScreen.classList.remove('active'); 
+            gameOverScreen.style.pointerEvents = 'none';
+            gameOverScreen.classList.remove('active');
             document.body.style.cursor = 'none';
             asteroidSpeed = 15.0;
 
@@ -547,20 +642,20 @@
         function endGame() {
             gameOver = true;
             document.body.style.cursor = 'default';
-            finalScoreEl.innerText = formatTime(timeSurvived); // Format final time
+            finalScoreEl.innerText = formatTime(timeSurvived);
             gameOverScreen.style.display = 'flex';
-            gameOverScreen.style.pointerEvents = 'auto'; 
-            gameOverScreen.classList.add('active'); 
+            gameOverScreen.style.pointerEvents = 'auto';
+            gameOverScreen.classList.add('active');
 
             autoRestartTimeout = setTimeout(() => {
                 restartGame();
-            }, 5000); 
+            }, 5000);
         }
 
         function restartGame() {
             gameOverScreen.style.display = 'none';
-            gameOverScreen.style.pointerEvents = 'none'; 
-            gameOverScreen.classList.remove('active'); 
+            gameOverScreen.style.pointerEvents = 'none';
+            gameOverScreen.classList.remove('active');
             resetGame();
         }
 
