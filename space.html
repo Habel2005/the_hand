@@ -57,11 +57,10 @@
             width: 15px; /* Fixed width for a rounded button */
             height: 25px; /* Fixed height for a rounded button */
             border-radius: 35%; /* Make it perfectly round */
+            border: 1px solid rgba(26, 111, 111, 0.4);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2em; /* Size of the 'i' icon */
-            font-family: 'Times New Roman'; /* Apply font to the 'i' text */
         }
         /* Specific hover effect for the round button */
         #game-info:hover {
@@ -288,7 +287,10 @@
         <div id="heal-vignette"></div>
         <div id="hud">
             <div id="game-info" class="hud-element">
-                i
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+</svg>
+
                 <div id="info-overlay">
                     <p><strong>Game Description:</strong></p>
                     <p>Avoid asteroids:</p>

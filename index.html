@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,15 +10,20 @@
         /* Global styles */
         body {
             margin: 0;
-            overflow: hidden; /* Hide scrollbars during transitions */
+            overflow: hidden;
+            /* Hide scrollbars during transitions */
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8f8f8; /* Very light grey, almost white */
-            color: #212121; /* Dark charcoal text */
+            background-color: #f8f8f8;
+            /* Very light grey, almost white */
+            color: #212121;
+            /* Dark charcoal text */
             display: flex;
             justify-content: center;
-            align-items: center; /* Center the app-container vertically */
+            align-items: center;
+            /* Center the app-container vertically */
             min-height: 100vh;
-            transition: background-color 0.3s ease; /* For page transition effect */
+            transition: background-color 0.3s ease;
+            /* For page transition effect */
         }
 
         /* --- LOADER STYLES --- */
@@ -27,27 +33,33 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #000; /* Loader background remains black */
+            background-color: #000;
+            /* Loader background remains black */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             opacity: 1;
-            transition: opacity 0.8s ease-out; /* Fade-out speed for the entire loader */
-            color: #f0f0f0; /* Text color for loader */
+            transition: opacity 0.8s ease-out;
+            /* Fade-out speed for the entire loader */
+            color: #f0f0f0;
+            /* Text color for loader */
             font-size: 1.2em;
         }
 
         #loader-video {
-            position: absolute; /* Position video behind text/progress */
+            position: absolute;
+            /* Position video behind text/progress */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: brightness(0.7); /* Slightly dim video for legibility of text */
-            z-index: -1; /* Place behind other loader content */
+            filter: brightness(0.7);
+            /* Slightly dim video for legibility of text */
+            z-index: -1;
+            /* Place behind other loader content */
         }
 
         .loader-progress-bar-container {
@@ -62,77 +74,112 @@
         .loader-progress-bar {
             width: 0%;
             height: 100%;
-            background-color: #3f1300; /* Blue progress */
+            background-color: #3f1300;
+            /* Blue progress */
             border-radius: 3px;
-            animation: fillProgressBar 4s linear forwards; /* Fill in 4 seconds */
+            animation: fillProgressBar 4s linear forwards;
+            /* Fill in 4 seconds */
         }
 
         @keyframes fillProgressBar {
-            0% { width: 0%; }
-            100% { width: 100%; }
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
         }
 
         /* --- MAIN APPLICATION CONTAINER --- */
         #app-container {
-            opacity: 0; /* Initially hidden */
-            transform: translateY(10px); /* Subtle starting position for animation */
-            transition: opacity 0.8s ease-in, transform 0.6s ease-out; /* Smooth fade-in */
-            display: flex; /* Sidebar + main content */
+            opacity: 0;
+            /* Initially hidden */
+            transform: translateY(10px);
+            /* Subtle starting position for animation */
+            transition: opacity 0.8s ease-in, transform 0.6s ease-out;
+            /* Smooth fade-in */
+            display: flex;
+            /* Sidebar + main content */
             width: 90%;
-            max-width: 1400px; /* Wider for more content */
-            background-color: #ffffff; /* Pure white background for the content area */
-            border-radius: 8px; /* Subtle rounding for the entire app area */
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05); /* Very subtle shadow */
-            overflow: hidden; /* Important for clean layout */
-            height: calc(100vh - 40px); /* Fill most of viewport height, considering body padding */
+            max-width: 1400px;
+            /* Wider for more content */
+            background-color: #ffffff;
+            /* Pure white background for the content area */
+            border-radius: 8px;
+            /* Subtle rounding for the entire app area */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            /* Very subtle shadow */
+            overflow: hidden;
+            /* Important for clean layout */
+            height: calc(100vh - 40px);
+            /* Fill most of viewport height, considering body padding */
         }
 
         /* --- SIDEBAR STYLES --- */
         #sidebar {
-            width: 250px; /* Fixed width */
-            padding: 20px 0; /* Vertical padding only, content is indented */
-            background-color: #fefefe; /* Even lighter for sidebar, subtle difference */
-            border-right: 1px solid #f0f0f0; /* Very subtle separator */
+            width: 250px;
+            /* Fixed width */
+            padding: 20px 0;
+            /* Vertical padding only, content is indented */
+            background-color: #fefefe;
+            /* Even lighter for sidebar, subtle difference */
+            border-right: 1px solid #f0f0f0;
+            /* Very subtle separator */
             display: flex;
             flex-direction: column;
-            gap: 5px; /* Reduced gap between nav items */
-            padding-top: 20px; /* Aligned with main content header */
+            gap: 5px;
+            /* Reduced gap between nav items */
+            padding-top: 20px;
+            /* Aligned with main content header */
         }
 
         .sidebar-section-title {
-            font-size: 0.8em; /* Smaller section title */
+            font-size: 0.8em;
+            /* Smaller section title */
             font-weight: 600;
-            color: #616161; /* Muted grey */
+            color: #616161;
+            /* Muted grey */
             margin-top: 15px;
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding-left: 20px; /* Indent */
+            padding-left: 20px;
+            /* Indent */
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 10px 20px; /* Adjusted padding to pack text */
-            color: #424242; /* Dark grey */
+            padding: 10px 20px;
+            /* Adjusted padding to pack text */
+            color: #424242;
+            /* Dark grey */
             text-decoration: none;
             font-size: 0.95em;
             font-weight: 500;
-            border-radius: 0; /* No rounding */
+            border-radius: 0;
+            /* No rounding */
             transition: background-color 0.15s ease, color 0.15s ease;
         }
 
         .nav-link:hover {
-            background-color: #e8e8e8; /* Light grey background on hover */
-            color: #212121; /* Darker text */
+            background-color: #e8e8e8;
+            /* Light grey background on hover */
+            color: #212121;
+            /* Darker text */
         }
 
         .nav-link.active {
-            background-color: #e0f2f7; /* Subtle light blue accent */
-            color: #007bff; /* Primary blue */
+            background-color: #e0f2f7;
+            /* Subtle light blue accent */
+            color: #007bff;
+            /* Primary blue */
             font-weight: 600;
-            border-left: 3px solid #007bff; /* Left border highlight */
-            padding-left: 17px; /* Adjust padding due to border */
+            border-left: 3px solid #007bff;
+            /* Left border highlight */
+            padding-left: 17px;
+            /* Adjust padding due to border */
         }
 
         .nav-link svg {
@@ -145,20 +192,26 @@
         /* --- MAIN CONTENT AREA STYLES --- */
         #main-content-area {
             flex-grow: 1;
-            padding: 20px 30px; /* Adjusted padding */
-            overflow-y: auto; /* Enable scrolling for game cards if content overflows */
+            padding: 20px 30px;
+            /* Adjusted padding */
+            overflow-y: auto;
+            /* Enable scrolling for game cards if content overflows */
             display: flex;
             flex-direction: column;
-            gap: 20px; /* Reduced gap between sections */
+            gap: 20px;
+            /* Reduced gap between sections */
         }
 
         /* Professional Title Placement */
         .app-main-title {
-            font-size: 2.5em; /* Larger title */
+            font-size: 2.5em;
+            /* Larger title */
             font-weight: 700;
             color: #212121;
-            margin-bottom: 25px; /* Space below title */
-            padding-left: 0; /* Aligned within main content area */
+            margin-bottom: 25px;
+            /* Space below title */
+            padding-left: 0;
+            /* Aligned within main content area */
         }
 
         /* Styling for the new "New Game" button at the top */
@@ -181,7 +234,7 @@
 
         .new-game-button:hover {
             background-color: #e0e0e0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .new-game-button svg {
@@ -218,7 +271,7 @@
             background-color: #ffffff;
             border-radius: 6px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             transition: all 0.15s ease-in-out;
             position: relative;
             display: flex;
@@ -232,11 +285,25 @@
             height: fit-content;
         }
 
-        .game-card:nth-child(2) { animation-delay: 0.02s; }
-        .game-card:nth-child(3) { animation-delay: 0.04s; }
-        .game-card:nth-child(4) { animation-delay: 0.06s; }
-        .game-card:nth-child(5) { animation-delay: 0.08s; }
-        .game-card:nth-child(6) { animation-delay: 0.1s; }
+        .game-card:nth-child(2) {
+            animation-delay: 0.02s;
+        }
+
+        .game-card:nth-child(3) {
+            animation-delay: 0.04s;
+        }
+
+        .game-card:nth-child(4) {
+            animation-delay: 0.06s;
+        }
+
+        .game-card:nth-child(5) {
+            animation-delay: 0.08s;
+        }
+
+        .game-card:nth-child(6) {
+            animation-delay: 0.1s;
+        }
 
 
         @keyframes cardFadeIn {
@@ -248,7 +315,7 @@
 
         .game-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .game-card-image-container {
@@ -325,12 +392,14 @@
             position: absolute;
             top: 0;
             right: 0;
-            background-color: #007bff; /* Blue indicator */
+            background-color: #007bff;
+            /* Blue indicator */
             color: white;
             padding: 4px 8px;
             font-size: 0.75em;
             font-weight: 600;
-            border-bottom-left-radius: 8px; /* Rounded corner */
+            border-bottom-left-radius: 8px;
+            /* Rounded corner */
             z-index: 10;
         }
 
@@ -338,7 +407,8 @@
         .wishlist-icon {
             position: absolute;
             top: 5px;
-            left: 5px; /* Position top-left */
+            left: 5px;
+            /* Position top-left */
             width: 24px;
             height: 24px;
             background-color: rgba(255, 255, 255, 0.7);
@@ -347,28 +417,36 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            z-index: 11; /* Above other elements in image container */
+            z-index: 11;
+            /* Above other elements in image container */
             transition: background-color 0.2s, transform 0.2s;
         }
+
         .wishlist-icon:hover {
             background-color: rgba(255, 255, 255, 0.9);
             transform: scale(1.1);
         }
+
         .wishlist-icon svg {
             width: 16px;
             height: 16px;
-            fill: #bdbdbd; /* Default grey for unliked */
+            fill: #bdbdbd;
+            /* Default grey for unliked */
             transition: fill 0.2s;
         }
+
         .wishlist-icon.liked svg {
-            fill: #360012; /* Pink for liked */
+            fill: #360012;
+            /* Pink for liked */
         }
 
         /* --- Wishlist content display --- */
         #wishlist-content {
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
             /* Add styles specific to wishlist display if it's different from game-cards-grid */
         }
+
         #wishlist-content .game-cards-grid {
             /* May need specific styles if the grid behavior changes for wishlist */
         }
@@ -376,71 +454,94 @@
         /* Responsive adjustments */
         @media (max-width: 900px) {
             #app-container {
-                flex-direction: column; /* Stack sidebar and main content vertically */
+                flex-direction: column;
+                /* Stack sidebar and main content vertically */
                 height: auto;
                 min-height: 95vh;
-                border-radius: 0; /* Full width on smaller screens */
+                border-radius: 0;
+                /* Full width on smaller screens */
             }
+
             #sidebar {
                 width: 100%;
                 border-right: none;
                 border-bottom: 1px solid #f0f0f0;
                 padding: 15px 10px;
-                flex-direction: row; /* Nav links side-by-side */
+                flex-direction: row;
+                /* Nav links side-by-side */
                 justify-content: center;
                 flex-wrap: wrap;
                 gap: 8px;
-                padding-top: 0; /* No top padding when stacked */
+                padding-top: 0;
+                /* No top padding when stacked */
             }
+
             .sidebar-section-title {
-                display: none; /* Hide section titles on small screens */
+                display: none;
+                /* Hide section titles on small screens */
             }
+
             .nav-link {
                 padding: 8px 12px;
                 font-size: 0.85em;
             }
+
             .nav-link.active {
-                padding-left: 12px; /* Adjust for smaller screens */
+                padding-left: 12px;
+                /* Adjust for smaller screens */
             }
+
             #main-content-area {
                 padding: 15px;
-                padding-top: 0; /* No top padding when stacked */
+                padding-top: 0;
+                /* No top padding when stacked */
             }
+
             .app-main-title {
                 font-size: 2em;
                 margin-bottom: 15px;
             }
+
             .new-game-button {
                 padding: 8px 12px;
                 font-size: 0.8em;
                 margin-bottom: 15px;
             }
+
             .new-game-button svg {
                 width: 16px;
                 height: 16px;
             }
+
             .section-header {
                 font-size: 1.1em;
                 margin-bottom: 10px;
             }
+
             .game-cards-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Even smaller cards */
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                /* Even smaller cards */
                 gap: 10px;
             }
+
             .game-card-image-container {
                 height: 100px;
             }
+
             .game-card-title {
                 font-size: 0.85em;
             }
+
             .wishlist-icon {
                 width: 20px;
                 height: 20px;
             }
+
             .wishlist-icon svg {
                 width: 14px;
                 height: 14px;
             }
+
             .coming-soon-overlay {
                 font-size: 0.9em;
             }
@@ -450,65 +551,81 @@
             body {
                 padding-top: 10px;
             }
+
             #app-container {
                 width: 98%;
                 min-height: calc(100vh - 20px);
             }
+
             #sidebar {
                 padding: 10px;
             }
+
             .nav-link {
                 font-size: 0.75em;
                 padding: 6px 10px;
             }
+
             #main-content-area {
                 padding: 10px;
             }
+
             .app-main-title {
                 font-size: 1.8em;
                 margin-bottom: 10px;
             }
+
             .new-game-button {
                 padding: 6px 10px;
                 font-size: 0.7em;
             }
+
             .section-header {
                 font-size: 1em;
             }
+
             .game-cards-grid {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
                 gap: 8px;
             }
+
             .game-card-image-container {
                 height: 80px;
             }
+
             .game-card-content {
                 padding: 8px;
             }
+
             .game-card-title {
                 font-size: 0.75em;
             }
+
             .wishlist-icon {
                 width: 18px;
                 height: 18px;
             }
+
             .wishlist-icon svg {
                 width: 12px;
                 height: 12px;
             }
+
             .coming-soon-overlay {
                 font-size: 0.8em;
             }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Loader Container (Now includes video again) -->
     <div id="loader-container">
         <!-- Loader video with a placeholder path and onerror for robust loading -->
         <video id="loader-video" playsinline muted autoplay loop>
-            <source src="assets/l3.mp4" type="video/mp4" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/video/2023/11/27/191764-889812497_medium.mp4';">
+            <source src="assets/l3.mp4" type="video/mp4"
+                onerror="this.onerror=null;this.src='https://cdn.pixabay.com/video/2023/11/27/191764-889812497_medium.mp4';">
             <source src="https://cdn.pixabay.com/video/2023/11/27/191764-889812497_medium.webm" type="video/webm">
             Your browser does not support the video tag.
         </video>
@@ -525,11 +642,21 @@
             <nav>
                 <div class="sidebar-section-title">Games</div>
                 <a href="#" class="nav-link active" data-view="all-games">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
                     <span>All Games</span>
                 </a>
                 <a href="#" class="nav-link" data-view="wishlist">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
                     <span>Wishlist</span>
                 </a>
             </nav>
@@ -542,23 +669,43 @@
 
             <!-- New Game Button - now only appears on 'All Games' view -->
             <a href="#" class="new-game-button" id="new-game-button">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                New Game
+
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                        d="M12 6h.01M12 12h.01M12 18h.01" />
+                </svg>
+
+                Simple Games. Infinite Fun. Rediscover Play with Libabry.
             </a>
 
             <!-- Section for "Playing" Games -->
             <div class="game-cards-section" id="playing-section">
                 <h2 class="section-header">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
                     Playing
                 </h2>
                 <div class="game-cards-grid">
                     <!-- Interactive 3D Hand Game Card - Playing -->
-                    <a href="the_hand.html" class="game-card" data-game-id="hand-battle-arena" data-game-title="Hand Battle Arena" data-game-image="assets/hand.png">
+                    <a href="the_hand.html" class="game-card" data-game-id="hand-battle-arena"
+                        data-game-title="Hand Battle Arena" data-game-image="assets/hand.png">
                         <div class="game-card-image-container">
-                            <img src="assets/hand.png" alt="Interactive 3D Hand Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Hand+Game';">
+                            <img src="assets/hand.png" alt="Interactive 3D Hand Game" class="game-card-image"
+                                onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Hand+Game';">
                             <div class="wishlist-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
                             </div>
                         </div>
                         <div class="game-card-content">
@@ -567,11 +714,18 @@
                     </a>
 
                     <!-- Example Playing Game 2 -->
-                    <a href="space.html" class="game-card" data-game-id="space-xplore" data-game-title="Space Xplore" data-game-image="assets/space.png">
+                    <a href="space.html" class="game-card" data-game-id="space-xplore" data-game-title="Space Xplore"
+                        data-game-image="assets/space.png">
                         <div class="game-card-image-container">
-                            <img src="assets/space.png" alt="Adventure Game" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Adventure+Game';">
+                            <img src="assets/space.png" alt="Adventure Game" class="game-card-image"
+                                onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Adventure+Game';">
                             <div class="wishlist-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
                             </div>
                         </div>
                         <div class="game-card-content">
@@ -580,12 +734,20 @@
                     </a>
 
                     <!-- Example Playing Game 3 -->
-                    <a href="#" class="game-card coming-soon" data-game-id="urban-utopia" data-game-title="Urban Utopia" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview">
+                    <a href="#" class="game-card coming-soon" data-game-id="urban-utopia" data-game-title="Urban Utopia"
+                        data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview">
                         <div class="game-card-image-container">
-                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview" alt="City Builder" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=City+Builder';">
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=City+Builder+Preview"
+                                alt="City Builder" class="game-card-image"
+                                onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=City+Builder';">
                             <div class="coming-soon-overlay">Coming Soon</div>
                             <div class="wishlist-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
                             </div>
                         </div>
                         <div class="game-card-content">
@@ -598,16 +760,31 @@
             <!-- Section for "New Releases" Games -->
             <div class="game-cards-section" id="new-releases-section">
                 <h2 class="section-header">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
                     New Releases
                 </h2>
                 <div class="game-cards-grid">
                     <!-- New Game: Space Shooter Card -->
-                    <a href="space_shooter.html" class="game-card" data-game-id="cosmic-fury" data-game-title="Cosmic Fury" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview">
+                    <a href="#" class="game-card coming-soon" data-game-id="cosmic-fury"
+                        data-game-title="Cosmic Fury"
+                        data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview">
                         <div class="game-card-image-container">
-                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview" alt="Space Shooter" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Space+Shooter';">
-                            <div class="wishlist-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Cosmic+Fury+Preview"
+                                alt="Space Shooter" class="game-card-image"
+                                onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Space+Shooter';">
+                            <div class="coming-soon-overlay">Coming Soon</div>
+                                <div class="wishlist-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
                             </div>
                         </div>
                         <div class="game-card-content">
@@ -616,12 +793,20 @@
                     </a>
 
                     <!-- New Game: Puzzle Adventure Card -->
-                    <div class="game-card coming-soon" data-game-id="chronos-enigma" data-game-title="Chronos Enigma" data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview">
+                    <div class="game-card coming-soon" data-game-id="chronos-enigma" data-game-title="Chronos Enigma"
+                        data-game-image="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview">
                         <div class="game-card-image-container">
-                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview" alt="Puzzle Adventure" class="game-card-image" onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Puzzle+Game';">
+                            <img src="https://placehold.co/400x250/EAEAEA/212121?text=Chronos+Enigma+Preview"
+                                alt="Puzzle Adventure" class="game-card-image"
+                                onerror="this.onerror=null;this.src='https://placehold.co/400x250/EAEAEA/212121?text=Puzzle+Game';">
                             <div class="coming-soon-overlay">Coming Soon</div>
                             <div class="wishlist-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                    </path>
+                                </svg>
                             </div>
                         </div>
                         <div class="game-card-content">
@@ -637,13 +822,20 @@
             <!-- Wishlist Content Display Area -->
             <div class="game-cards-section" id="wishlist-content" style="display: none;">
                 <h2 class="section-header">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
                     My Wishlist
                 </h2>
                 <div class="game-cards-grid" id="wishlist-grid">
                     <!-- Wishlist items will be rendered here by JavaScript -->
                 </div>
-                 <p id="empty-wishlist-message" style="display: none; text-align: center; color: #6c757d; margin-top: 50px;">Your wishlist is empty. Add some games!</p>
+                <p id="empty-wishlist-message"
+                    style="display: none; text-align: center; color: #6c757d; margin-top: 50px;">Your wishlist is empty.
+                    Add some games!</p>
             </div>
 
         </main>
@@ -832,7 +1024,7 @@
                         });
                     });
 
-                     // Re-attach event listeners for game cards in wishlist grid (only if not coming soon)
+                    // Re-attach event listeners for game cards in wishlist grid (only if not coming soon)
                     wishlistGrid.querySelectorAll('.game-card:not(.coming-soon)').forEach(gameCard => {
                         gameCard.addEventListener('click', (event) => {
                             event.preventDefault(); // Prevent immediate navigation
@@ -844,7 +1036,7 @@
                             const originalGameCard = document.querySelector(`.game-cards-section .game-card[data-game-id="${gameId}"]`);
                             const actualHref = originalGameCard ? originalGameCard.getAttribute('href') : targetHref;
 
-                             if (actualHref && actualHref !== '#') { // Only navigate if it's a real game link
+                            if (actualHref && actualHref !== '#') { // Only navigate if it's a real game link
                                 localStorage.setItem('lastPlayedGameId', gameId);
                                 body.classList.add('fade-out-to-black');
                                 setTimeout(() => {
@@ -885,8 +1077,8 @@
                         wishlistContent.style.display = 'block';
                         renderWishlist(); // Render wishlist when selected
                     }
-                     // Ensure no last played indicator on wishlist view as it's for game launch
-                     document.querySelectorAll('.last-played-indicator').forEach(indicator => indicator.remove());
+                    // Ensure no last played indicator on wishlist view as it's for game launch
+                    document.querySelectorAll('.last-played-indicator').forEach(indicator => indicator.remove());
                 });
             });
 
@@ -923,8 +1115,8 @@
             // This now applies to ALL .game-card elements that are NOT .coming-soon
             // The logic inside renderWishlist() will handle launches from wishlist
             document.querySelectorAll('.game-card:not(.coming-soon)').forEach(gameCard => {
-                 // Only add listener if it's NOT a card inside the wishlist grid initially
-                 if (!gameCard.closest('#wishlist-grid')) {
+                // Only add listener if it's NOT a card inside the wishlist grid initially
+                if (!gameCard.closest('#wishlist-grid')) {
                     gameCard.addEventListener('click', (event) => {
                         event.preventDefault(); // Prevent immediate navigation
 
@@ -947,4 +1139,5 @@
         });
     </script>
 </body>
+
 </html>
