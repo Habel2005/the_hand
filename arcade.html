@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rocket Collector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(145deg, #0f2027, #203a43, #2c5364);
+            overflow: hidden;
+        }
+
+        #playButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #playButton:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+        }
+
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10000;
+        }
+
+        #game-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-between;
+            gap: 50px;
+            color: #ffffff;
+            font-size: 20px;
+            z-index: 10001;
+        }
+
+        canvas {
+            border-radius: 15px;
+            background-color: #001f2d;
+            width: 90vw;
+            height: 60vh;
+        }
+
+        #game-controls {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+
+        .arrow-button {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            border: none;
+            border-radius: 50%;
+            background-color: #ff416c;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.5);
+            transition: 0.2s;
+        }
+
+        .arrow-button:hover {
+            transform: scale(1.1);
+            background-color: #ff4b2b;
+        }
+
+        #closeGame {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            z-index: 10001;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="playButton">🚀 Play Game</button>
+
+    <div id="game-container">
+        <div id="closeGame">&times;</div>
+        <div id="game-info">
+            <div id="score-display">Score: 0</div>
+            <div id="timer-display">Time Left: 30</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-controls">
+            <button id="left-arrow" class="arrow-button"><svg class="w-6 h-6 text-gray-800 dark:text-white"
+                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                    viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 12h14M5 12l4-4m-4 4 4 4" />
+                </svg>
+            </button>
+            <button id="right-arrow" class="arrow-button"><svg class="w-6 h-6 text-gray-800 dark:text-white"
+                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                    viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 12H5m14 0-4 4m4-4-4-4" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const gameContainer = document.getElementById("game-container");
+        const playButton = document.getElementById("playButton");
+        const closeGameButton = document.getElementById("closeGame");
+        const leftArrow = document.getElementById("left-arrow");
+        const rightArrow = document.getElementById("right-arrow");
+
+        const scoreDisplay = document.getElementById("score-display");
+        const timerDisplay = document.getElementById("timer-display");
+
+        let rocketImg = new Image();
+        rocketImg.src = "assets/gamerocket.svg";
+
+        let energyCellImg = new Image();
+        energyCellImg.src = "assets/energy.svg";
+
+        let obstacleImg = new Image();
+        obstacleImg.src = "assets/rock.svg";
+
+        let rocket, energyCells = [], obstacles = [], score = 0, timeLeft = 30, gameRunning = false;
+        let obstacleSpeed = 1, energySpeed = 1;
+
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+
+        function startGame() {
+            const images = [rocketImg, energyCellImg, obstacleImg];
+            let loaded = 0;
+            images.forEach(img => {
+                if (img.complete) loaded++;
+                else img.onload = () => {
+                    loaded++;
+                    if (loaded === images.length) beginGame();
+                };
+            });
+
+            if (loaded === images.length) beginGame();
+        }
+
+        function beginGame() {
+            playButton.style.display = "none";
+            gameContainer.style.display = "flex";
+            resizeCanvas();
+            resetGame();
+            gameRunning = true;
+            requestAnimationFrame(updateGame);
+            updateTimer();
+        }
+
+        function resetGame() {
+            rocket = {
+                x: canvas.width / 2,
+                y: canvas.height - 40,
+                speed: 5,
+                width: 40,
+                height: 60
+            };
+            energyCells = [];
+            obstacles = [];
+            score = 0;
+            timeLeft = 30;
+            obstacleSpeed = 1;
+            energySpeed = 1;
+            for (let i = 0; i < 5; i++) {
+                energyCells.push(generateSafePosition(15, false));
+                obstacles.push(generateSafePosition(20, true));
+            }
+            scoreDisplay.innerText = `Score: ${score}`;
+            timerDisplay.innerText = `Time Left: ${timeLeft}`;
+        }
+
+        function generateSafePosition(radius, isObstacle) {
+            let x, y;
+            do {
+                x = Math.random() * (canvas.width - 2 * radius) + radius;
+                y = Math.random() * (canvas.height / 2);
+            } while (Math.abs(x - rocket.x) < 60 && Math.abs(y - rocket.y) < 60);
+            return {
+                x,
+                y,
+                radius,
+                vx: isObstacle ? (Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.5 : 0
+            };
+        }
+
+        function updateGame() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw rocket
+            ctx.drawImage(rocketImg, rocket.x - rocket.width / 2, rocket.y - rocket.height / 2, rocket.width, rocket.height);
+
+            // Move & draw energy
+            energyCells.forEach(cell => {
+                cell.y += energySpeed;
+                if (cell.y - cell.radius > canvas.height) cell.y = -cell.radius;
+                ctx.drawImage(energyCellImg, cell.x - cell.radius, cell.y - cell.radius, 20, 20);
+            });
+
+            // Move & draw obstacles
+            obstacles.forEach(ob => {
+                ob.y += obstacleSpeed;
+                ob.x += ob.vx;
+                if (ob.x < 15 || ob.x > canvas.width - 15) ob.vx *= -1;
+                if (ob.y - ob.radius > canvas.height) ob.y = -ob.radius;
+                ctx.drawImage(obstacleImg, ob.x - ob.radius, ob.y - ob.radius, 30, 30);
+            });
+
+            checkCollisions();
+            scoreDisplay.innerText = `Score: ${score}`;
+            requestAnimationFrame(updateGame);
+        }
+
+        function checkCollisions() {
+            energyCells = energyCells.filter(cell => {
+                if (isColliding(rocket, cell)) {
+                    score += 10;
+                    return false;
+                }
+                return true;
+            });
+
+            for (let ob of obstacles) {
+                if (isColliding(rocket, ob)) {
+                    endGame(false);
+                    return;
+                }
+            }
+
+            if (energyCells.length === 0) endGame(true);
+        }
+
+        function isColliding(a, b) {
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < 30;
+        }
+
+        function updateTimer() {
+            if (!gameRunning) return;
+            if (timeLeft > 0) {
+                timeLeft--;
+                timerDisplay.innerText = `Time Left: ${timeLeft}`;
+
+                // Difficulty scaling
+                if (timeLeft % 10 === 0) increaseDifficulty();
+
+                setTimeout(updateTimer, 1000);
+            } else {
+                endGame(true);
+            }
+        }
+
+        function increaseDifficulty() {
+            if (rocket.speed < 10) rocket.speed += 0.5;
+            if (energySpeed < 4) energySpeed += 0.2;
+            if (obstacleSpeed < 4) obstacleSpeed += 0.3;
+        }
+
+        function endGame(win) {
+            gameRunning = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.font = "28px Arial";
+            ctx.textAlign = "center";
+
+            let highScore = sessionStorage.getItem("highScore") || 0;
+            if (score > highScore) {
+                highScore = score;
+                sessionStorage.setItem("highScore", highScore);
+            }
+
+            const msg = win ? `🎉 You Won! Score: ${score}` : `💥 Game Over! Score: ${score}`;
+            ctx.fillText(msg, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(`🏆 High Score: ${highScore}`, canvas.width / 2, canvas.height / 2 + 40);
+        }
+
+        // Controls
+        leftArrow.addEventListener("click", () => {
+            if (rocket.x - rocket.width / 2 > 0) rocket.x -= rocket.speed;
+        });
+
+        rightArrow.addEventListener("click", () => {
+            if (rocket.x + rocket.width / 2 < canvas.width) rocket.x += rocket.speed;
+        });
+
+        playButton.addEventListener("click", startGame);
+
+        closeGameButton.addEventListener("click", () => {
+            gameRunning = false;
+            gameContainer.style.display = "none";
+            playButton.style.display = "block";
+        });
+
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+
+</html>
