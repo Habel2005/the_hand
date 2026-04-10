@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>Rocket Collector</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ─────────────────────────────────────────────── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none;touch-action:none}
+
+/* ── FONTS / VARS ──────────────────────────────────────── */
+:root{
+  --red:#FF2D20;
+  --gold:#E5B84A;
+  --blue:#00E5FF;
+  --bg:#06080F;
+  --panel:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);
+  --ff-d:'Bebas Neue',sans-serif;
+  --ff-m:'Space Mono',monospace;
+}
+
+/* ── BACKGROUND ────────────────────────────────────────── */
+body{
+  font-family:var(--ff-m);
+  background:radial-gradient(ellipse at 50% 0%, #0a1628 0%, #06080F 60%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+
+/* ── START / END SCREENS ────────────────────────────────── */
+.screen{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  background:radial-gradient(ellipse at 50% 30%, #0d1f3c 0%, #06080F 70%);
+  transition:opacity .5s ease;
+}
+.screen.hidden{opacity:0;pointer-events:none}
+
+.s-eyebrow{
+  font-size:10px;letter-spacing:8px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);margin-bottom:18px;
+}
+.s-title{
+  font-family:var(--ff-d);font-size:clamp(72px,14vw,150px);
+  letter-spacing:4px;line-height:.9;text-align:center;
+  color:#fff;margin-bottom:6px;
+}
+.s-sub{
+  font-family:var(--ff-d);font-size:clamp(32px,5vw,54px);
+  letter-spacing:3px;color:rgba(255,255,255,.2);margin-bottom:46px;
+}
+.s-rule{width:1px;height:44px;background:rgba(255,255,255,.12);margin:0 auto 36px}
+
+.s-btn{
+  font-family:var(--ff-m);font-size:10px;letter-spacing:5px;text-transform:uppercase;
+  color:#000;background:#fff;border:none;border-radius:3px;
+  padding:16px 52px;cursor:pointer;
+  box-shadow:0 0 40px rgba(255,255,255,.25),0 0 80px rgba(255,255,255,.08);
+  transition:transform .2s,box-shadow .2s;
+}
+.s-btn:hover{transform:scale(1.05);box-shadow:0 0 60px rgba(255,255,255,.45)}
+.s-btn:active{transform:scale(.97)}
+
+.s-hint{margin-top:22px;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.18)}
+.s-hs{margin-top:8px;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.22)}
+
+/* end screen extras */
+.s-score-big{
+  font-family:var(--ff-d);font-size:clamp(80px,15vw,160px);
+  color:#fff;line-height:1;margin-bottom:0;
+}
+.s-score-lbl{font-size:9px;letter-spacing:5px;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:36px}
+.s-new{color:var(--gold);font-size:11px;letter-spacing:4px;text-transform:uppercase;margin-top:8px;height:18px}
+
+/* ── GAME WRAPPER ───────────────────────────────────────── */
+#game-wrap{
+  position:fixed;inset:0;z-index:50;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;
+  opacity:0;pointer-events:none;transition:opacity .5s ease;
+}
+#game-wrap.show{opacity:1;pointer-events:auto}
+
+/* ── HUD ────────────────────────────────────────────────── */
+#hud{
+  width:min(860px,90vw);display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.hud-pill{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:12px 20px;
+  background:var(--panel);
+  border:1px solid var(--border);border-radius:8px;
+  min-width:130px;
+}
+.hud-lbl{font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.25)}
+.hud-val{
+  font-family:var(--ff-d);font-size:36px;letter-spacing:1px;line-height:1;
+  color:#fff;transition:color .25s;
+}
+.hud-val.flash-gold{color:var(--gold);text-shadow:0 0 20px rgba(229,184,74,.6)}
+.hud-val.flash-red{color:var(--red);text-shadow:0 0 20px rgba(255,45,32,.6)}
+.hud-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.hud-time-arc{position:relative;width:64px;height:64px}
+#arc-svg{width:64px;height:64px;transform:rotate(-90deg)}
+#arc-bg{fill:none;stroke:rgba(255,255,255,.07);stroke-width:3}
+#arc-fill{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;transition:stroke .5s,stroke-dashoffset .25s linear}
+.hud-time-inner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--ff-d);font-size:26px;color:#fff;
+}
+.hud-close{
+  width:40px;height:40px;border:1px solid var(--border);border-radius:50%;background:none;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.35);font-size:20px;cursor:pointer;
+  transition:border-color .2s,color .2s;flex-shrink:0;
+}
+.hud-close:hover{border-color:rgba(255,255,255,.3);color:#fff}
+
+/* ── CANVAS ─────────────────────────────────────────────── */
+#cv{
+  display:block;
+  width:min(860px,90vw);
+  height:min(520px,55vh);
+  border-radius:14px;
+  border:1px solid var(--border);
+  box-shadow:0 0 80px rgba(0,229,255,.04),inset 0 0 40px rgba(0,0,0,.5);
+  cursor:none;
+}
+
+/* ── D-PAD ──────────────────────────────────────────────── */
+#dpad{
+  display:flex;gap:12px;align-items:center;
+}
+.dp-btn{
+  width:58px;height:58px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.6);cursor:pointer;
+  transition:background .15s,transform .1s,border-color .15s;
+  -webkit-tap-highlight-color:transparent;
+  font-size:0;/* hide any text */
+}
+.dp-btn:active,.dp-btn.pressed{
+  background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);
+  transform:scale(.93);
+}
+.dp-btn svg{pointer-events:none}
+
+/* flash overlay */
+#flash{
+  position:fixed;inset:0;z-index:200;pointer-events:none;
+  opacity:0;transition:opacity .08s;
+  background:rgba(255,45,32,.45);
+}
+</style>
+</head>
+<body>
+
+<!-- ── START SCREEN ── -->
+<div class="screen" id="s-start">
+  <div class="s-eyebrow">Mission Briefing</div>
+  <div class="s-title">ROCKET</div>
+  <div class="s-sub">COLLECTOR</div>
+  <div class="s-rule"></div>
+  <button class="s-btn" id="btn-start">LAUNCH</button>
+  <div class="s-hint">Arrow keys · WASD · D-Pad</div>
+  <div class="s-hs" id="s-hs-label"></div>
+</div>
+
+<!-- ── END SCREEN ── -->
+<div class="screen hidden" id="s-end">
+  <div class="s-eyebrow" id="end-label">Mission Complete</div>
+  <div class="s-score-big" id="end-score">0</div>
+  <div class="s-score-lbl">Final Score</div>
+  <div class="s-new" id="end-new"></div>
+  <div class="s-rule"></div>
+  <button class="s-btn" id="btn-restart">RETRY</button>
+  <div class="s-hint">Or press Space</div>
+</div>
+
+<!-- ── GAME ── -->
+<div id="game-wrap">
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-pill">
+      <div class="hud-lbl">Score</div>
+      <div class="hud-val" id="hud-score">0</div>
+    </div>
+
+    <div class="hud-center">
+      <div class="hud-time-arc">
+        <svg id="arc-svg" viewBox="0 0 64 64">
+          <circle id="arc-bg" cx="32" cy="32" r="28"/>
+          <circle id="arc-fill" cx="32" cy="32" r="28"/>
+        </svg>
+        <div class="hud-time-inner" id="hud-time">30</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="hud-pill" style="align-items:flex-end">
+        <div class="hud-lbl">Collected</div>
+        <div class="hud-val" id="hud-cells">0</div>
+      </div>
+      <button class="hud-close" id="btn-close">×</button>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <canvas id="cv"></canvas>
+
+  <!-- D-Pad -->
+  <div id="dpad">
+    <!-- Left -->
+    <button class="dp-btn" id="dp-left" aria-label="Left">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <!-- Up -->
+    <button class="dp-btn" id="dp-up" aria-label="Up">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 15l-6-6-6 6"/>
+      </svg>
+    </button>
+    <!-- Down -->
+    <button class="dp-btn" id="dp-down" aria-label="Down">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+    <!-- Right -->
+    <button class="dp-btn" id="dp-right" aria-label="Right">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Flash overlay -->
+<div id="flash"></div>
+
+<script>
+/* ================================================================
+   ROCKET COLLECTOR — Rebuilt
+================================================================ */
+
+// ── AUDIO ────────────────────────────────────────────────────────
+let AC=null;
+function bootAudio(){if(AC)return;AC=new(window.AudioContext||window.webkitAudioContext)()}
+function beep(freq,type,dur,vol,delay=0,freqEnd=null){
+  if(!AC)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g);g.connect(AC.destination);
+  const now=AC.currentTime+delay;
+  o.type=type;o.frequency.setValueAtTime(freq,now);
+  if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,now+dur);
+  g.gain.setValueAtTime(0.001,now);g.gain.linearRampToValueAtTime(vol,now+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,now+dur);
+  o.start(now);o.stop(now+dur+0.02);
+}
+const SFX={
+  collect(){ [660,880,1100].forEach((f,i)=>beep(f,'sine',0.1,0.09,i*0.04)) },
+  hit(){     beep(120,'sawtooth',0.3,0.25); beep(80,'square',0.2,0.15,0.1) },
+  launch(){  [220,330,440,660].forEach((f,i)=>beep(f,'sine',0.12,0.1,i*0.06)) },
+  end(win){
+    if(win)[440,554,659,880].forEach((f,i)=>beep(f,'sine',0.2,0.1,i*0.08));
+    else   [400,320,254,200].forEach((f,i)=>beep(f,'square',0.18,0.12,i*0.1));
+  }
+};
+
+// ── ELEMENTS ─────────────────────────────────────────────────────
+const CV        = document.getElementById('cv');
+const ctx       = CV.getContext('2d');
+const sStart    = document.getElementById('s-start');
+const sEnd      = document.getElementById('s-end');
+const gWrap     = document.getElementById('game-wrap');
+const hudScore  = document.getElementById('hud-score');
+const hudTime   = document.getElementById('hud-time');
+const hudCells  = document.getElementById('hud-cells');
+const arcFill   = document.getElementById('arc-fill');
+const endScore  = document.getElementById('end-score');
+const endLabel  = document.getElementById('end-label');
+const endNew    = document.getElementById('end-new');
+const sHsLabel  = document.getElementById('s-hs-label');
+const flashEl   = document.getElementById('flash');
+
+// ── CONSTANTS ────────────────────────────────────────────────────
+const TOTAL_TIME    = 30;
+const BASE_CELLS    = 6;
+const BASE_ROCKS    = 5;
+const ROCKET_R      = 18;   // hitbox radius
+const CELL_R        = 11;   // energy cell radius
+const ROCK_R        = 16;   // rock radius
+const ROCKET_SPEED  = 290;  // px/s
+const CELL_SPEED    = 65;   // px/s initial fall speed
+const ROCK_SPEED_X  = 70;
+const ROCK_SPEED_Y  = 55;
+const MAX_SPEED_MUL = 2.4;  // cap multiplier for speed scaling
+
+// Arc circumference
+const ARC_R   = 28;
+const ARC_C   = 2*Math.PI*ARC_R;
+arcFill.style.strokeDasharray  = ARC_C;
+arcFill.style.strokeDashoffset = 0;
+
+// ── STATE ─────────────────────────────────────────────────────────
+let W, H;                 // canvas logical pixels
+let phase = 'START';      // START | PLAY | OVER
+let rocket, cells, rocks, sparks, particles;
+let score, cellsHit, timeLeft, lastT;
+let speedMul;
+let keys = {};
+let dpKeys = {};          // d-pad pressed state
+let animId;
+let highScore = +(localStorage.getItem('rc_hs')||0);
+
+// ── RESIZE ───────────────────────────────────────────────────────
+function resize(){
+  const el  = CV.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  CV.width  = el.width  * dpr;
+  CV.height = el.height * dpr;
+  ctx.scale(dpr,dpr);
+  W = el.width;
+  H = el.height;
+}
+window.addEventListener('resize', ()=>{ if(phase==='PLAY') resize(); });
+
+// ── HELPERS ──────────────────────────────────────────────────────
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+// ── STARS (static backdrop) ───────────────────────────────────────
+const STARS = Array.from({length:160},()=>({
+  px: Math.random(), py: Math.random(),
+  r:  Math.random()*1.3+0.2,
+  a:  Math.random()*0.55+0.1,
+}));
+
+function drawStars(){
+  for(const s of STARS){
+    ctx.globalAlpha=s.a;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(s.px*W,s.py*H,s.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+// ── INIT GAME ─────────────────────────────────────────────────────
+function initGame(){
+  resize();
+  score     = 0;
+  cellsHit  = 0;
+  timeLeft  = TOTAL_TIME;
+  speedMul  = 1;
+  sparks    = [];
+  particles = [];
+
+  // Rocket centered horizontally, near bottom
+  rocket = {
+    x:  W/2,
+    y:  H - 60,
+    vx: 0,
+    vy: 0,
+    // visual
+    flame: 0,
+    tilt:  0,
+  };
+
+  // Spawn energy cells (safe distance from rocket start)
+  cells = [];
+  for(let i=0;i<BASE_CELLS;i++) spawnCell();
+
+  // Spawn rocks
+  rocks = [];
+  for(let i=0;i<BASE_ROCKS;i++) spawnRock(true);
+
+  updateHUD();
+  updateArc();
+}
+
+function spawnCell(fromTop=false){
+  let x,y,safe=false,tries=0;
+  while(!safe&&tries<40){
+    x=rnd(CELL_R+10, W-CELL_R-10);
+    y=fromTop ? rnd(-H*0.6, -CELL_R-5) : rnd(CELL_R+10, H*0.55);
+    safe=dist({x,y},rocket)>120 && cells.every(c=>dist({x,y},c)>40);
+    tries++;
+  }
+  cells.push({
+    x,y,
+    vy: CELL_SPEED*rnd(0.7,1.4)*speedMul,
+    phase: rnd(0,Math.PI*2),  // wobble phase
+    alive: true,
+  });
+}
+
+function spawnRock(initial=false){
+  let x,y,tries=0,safe=false;
+  while(!safe&&tries<40){
+    if(initial){
+      x=rnd(ROCK_R+10, W-ROCK_R-10);
+      y=rnd(ROCK_R+10, H*0.5);
+    } else {
+      // spawn from top edge
+      x=rnd(ROCK_R+10, W-ROCK_R-10);
+      y=-ROCK_R*2;
+    }
+    safe=dist({x,y},rocket)>150;
+    tries++;
+  }
+  const angle=rnd(-0.5,0.5);
+  const spd=ROCK_SPEED_Y*rnd(0.8,1.5)*speedMul;
+  rocks.push({
+    x,y,
+    vx: Math.sin(angle)*ROCK_SPEED_X*rnd(0.6,1.4)*speedMul,
+    vy: initial ? rnd(-ROCK_SPEED_Y*0.5, ROCK_SPEED_Y*0.5) : spd,
+    rot:  rnd(0,Math.PI*2),
+    rotV: rnd(-1.5,1.5),
+    sides: Math.floor(rnd(5,9)),
+    scale: rnd(0.7,1.3),
+    alive: true,
+  });
+}
+
+// ── INPUT ─────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].includes(e.code)) e.preventDefault();
+  // restart
+  if((e.code==='Space')&&phase==='OVER'){ bootAudio(); startGame(); }
+});
+document.addEventListener('keyup',e=>keys[e.code]=false);
+
+function dpPress(k){ dpKeys[k]=true; document.getElementById('dp-'+k).classList.add('pressed') }
+function dpRelease(k){ dpKeys[k]=false; document.getElementById('dp-'+k).classList.remove('pressed') }
+
+['left','right','up','down'].forEach(k=>{
+  const btn=document.getElementById('dp-'+k);
+  const start=e=>{ e.preventDefault(); bootAudio(); dpPress(k); };
+  const end=e=>{   e.preventDefault(); dpRelease(k); };
+  btn.addEventListener('pointerdown',start);
+  btn.addEventListener('pointerup',end);
+  btn.addEventListener('pointerleave',end);
+  btn.addEventListener('pointercancel',end);
+});
+
+function isLeft() { return keys['ArrowLeft']||keys['KeyA']||dpKeys['left'] }
+function isRight(){ return keys['ArrowRight']||keys['KeyD']||dpKeys['right'] }
+function isUp()   { return keys['ArrowUp']||keys['KeyW']||dpKeys['up'] }
+function isDown() { return keys['ArrowDown']||keys['KeyS']||dpKeys['down'] }
+
+// ── HUD ───────────────────────────────────────────────────────────
+function updateHUD(){
+  hudScore.textContent  = score;
+  hudTime.textContent   = Math.ceil(timeLeft);
+  hudCells.textContent  = cellsHit;
+}
+function updateArc(){
+  const pct = timeLeft/TOTAL_TIME;
+  const offset = ARC_C*(1-pct);
+  arcFill.style.strokeDashoffset = offset;
+  // color shift: blue→gold→red
+  if(pct>0.5)       arcFill.style.stroke='var(--blue)';
+  else if(pct>0.25) arcFill.style.stroke='var(--gold)';
+  else              arcFill.style.stroke='var(--red)';
+}
+
+function flashHUD(el,cls,dur=500){
+  el.classList.add(cls);
+  setTimeout(()=>el.classList.remove(cls),dur);
+}
+function triggerFlash(){
+  flashEl.style.opacity=1;
+  setTimeout(()=>flashEl.style.opacity=0,120);
+}
+
+// ── PARTICLES ─────────────────────────────────────────────────────
+function spawnSparks(x,y,col,n){
+  for(let i=0;i<n;i++){
+    const a=rnd(0,Math.PI*2);
+    const v=rnd(60,260);
+    sparks.push({ x,y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:1, r:rnd(2,5), col });
+  }
+}
+function spawnCollectPop(x,y){
+  for(let i=0;i<12;i++){
+    const a=rnd(0,Math.PI*2);
+    const v=rnd(40,180);
+    particles.push({ x,y, vx:Math.cos(a)*v, vy:Math.sin(a)*v,
+      life:1, r:rnd(3,8), col:`hsl(${rnd(40,70)},100%,65%)` });
+  }
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────
+function update(dt){
+  if(phase!=='PLAY') return;
+
+  timeLeft=Math.max(0,timeLeft-dt);
+  speedMul=clamp(1+(TOTAL_TIME-timeLeft)/TOTAL_TIME*(MAX_SPEED_MUL-1),1,MAX_SPEED_MUL);
+
+  // ── Rocket movement (4-directional, smooth)
+  const spd = ROCKET_SPEED*clamp(speedMul*0.6+0.8,1,1.8);
+  const accel=14;
+  const decel=9;
+  const targetVx = (isLeft()?-1:0)+(isRight()?1:0);
+  const targetVy = (isUp()?-1:0)+(isDown()?1:0);
+  const mag=Math.hypot(targetVx,targetVy)||1;
+  const nvx=targetVx?targetVx/mag*spd:0;
+  const nvy=targetVy?targetVy/mag*spd:0;
+
+  if(targetVx!==0) rocket.vx=lerp(rocket.vx,nvx,accel*dt);
+  else             rocket.vx=lerp(rocket.vx,0,decel*dt);
+  if(targetVy!==0) rocket.vy=lerp(rocket.vy,nvy,accel*dt);
+  else             rocket.vy=lerp(rocket.vy,0,decel*dt);
+
+  rocket.x=clamp(rocket.x+rocket.vx*dt, ROCKET_R, W-ROCKET_R);
+  rocket.y=clamp(rocket.y+rocket.vy*dt, ROCKET_R, H-ROCKET_R);
+  rocket.tilt=lerp(rocket.tilt,rocket.vx/spd*0.35,8*dt);
+  rocket.flame=Math.abs(rocket.vy)<10?0.3:clamp(Math.abs(rocket.vy)/spd,0.2,1);
+
+  // ── Energy cells
+  cells.forEach(c=>{
+    if(!c.alive) return;
+    c.y+=c.vy*dt;
+    c.phase+=dt*2.8;
+    c.x+=Math.sin(c.phase)*0.5;  // gentle horizontal drift
+    if(c.y>H+CELL_R*2){
+      c.y=-CELL_R*2;
+      c.x=rnd(CELL_R+10,W-CELL_R-10);
+    }
+    // Collision
+    if(dist(rocket,c)<ROCKET_R+CELL_R){
+      c.alive=false;
+      score+=10;
+      cellsHit++;
+      SFX.collect();
+      spawnCollectPop(c.x,c.y);
+      flashHUD(hudScore,'flash-gold');
+      updateHUD();
+    }
+  });
+  // Respawn dead cells immediately
+  const deadCells=cells.filter(c=>!c.alive).length;
+  for(let i=0;i<deadCells;i++) spawnCell(true);
+  cells=cells.filter(c=>c.alive);
+
+  // ── Rocks
+  rocks.forEach(r=>{
+    if(!r.alive) return;
+    r.x+=r.vx*dt;
+    r.y+=r.vy*dt;
+    r.rot+=r.rotV*dt;
+    // Bounce off walls
+    if(r.x<ROCK_R*r.scale){r.x=ROCK_R*r.scale;r.vx=Math.abs(r.vx)}
+    if(r.x>W-ROCK_R*r.scale){r.x=W-ROCK_R*r.scale;r.vx=-Math.abs(r.vx)}
+    // Wrap vertically
+    if(r.y>H+ROCK_R*2){ r.y=-ROCK_R*2; r.x=rnd(ROCK_R+10,W-ROCK_R-10); r.vx=rnd(-1,1)*ROCK_SPEED_X*speedMul; }
+    // Collision
+    if(dist(rocket,r)<ROCKET_R+ROCK_R*r.scale*0.8){
+      r.alive=false;
+      SFX.hit();
+      triggerFlash();
+      spawnSparks(rocket.x,rocket.y,'rgba(255,45,32,',16);
+      score=Math.max(0,score-5);
+      flashHUD(hudScore,'flash-red');
+      updateHUD();
+    }
+  });
+  const deadRocks=rocks.filter(r=>!r.alive).length;
+  for(let i=0;i<deadRocks;i++) spawnRock(false);
+  rocks=rocks.filter(r=>r.alive);
+
+  // ── Sparks
+  sparks=sparks.filter(s=>{
+    s.x+=s.vx*dt; s.y+=s.vy*dt;
+    s.vy+=280*dt;
+    s.life-=dt*2.8; s.vx*=0.97;
+    return s.life>0;
+  });
+  particles=particles.filter(p=>{
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    p.vy-=120*dt;
+    p.life-=dt*2.2;
+    return p.life>0;
+  });
+
+  updateHUD();
+  updateArc();
+
+  if(timeLeft<=0){ endGame(true); return; }
+}
+
+function lerp(a,b,t){ return a+(b-a)*Math.min(t,1) }
+
+// ── DRAW ──────────────────────────────────────────────────────────
+function draw(){
+  // Background
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#06111f');
+  bg.addColorStop(1,'#020810');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // Grid lines (depth)
+  ctx.save();
+  for(let i=1;i<8;i++){
+    const y=H*i/8;
+    ctx.strokeStyle=`rgba(0,120,180,${0.04-(i/8)*0.035})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  for(let i=1;i<10;i++){
+    const x=W*i/10;
+    ctx.strokeStyle='rgba(0,100,150,0.04)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  ctx.restore();
+
+  drawStars();
+  drawRocks();
+  drawCells();
+  drawParticles();
+  drawSparks();
+  drawRocket();
+  drawVignette();
+}
+
+function drawRocket(){
+  const { x,y,tilt,flame,vy,vx } = rocket;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(tilt);
+
+  // Thrust flame
+  const flameH=28+flame*30;
+  const fg=ctx.createLinearGradient(0,8,0,8+flameH);
+  fg.addColorStop(0,'rgba(255,120,20,0.95)');
+  fg.addColorStop(0.45,'rgba(255,60,0,0.75)');
+  fg.addColorStop(1,'rgba(255,30,0,0)');
+  ctx.fillStyle=fg;
+  ctx.beginPath();
+  ctx.moveTo(-7,10);ctx.lineTo(7,10);
+  ctx.quadraticCurveTo(3,10+flameH*0.6,0,10+flameH);
+  ctx.quadraticCurveTo(-3,10+flameH*0.6,-7,10);
+  ctx.closePath();ctx.fill();
+
+  // Glow aura
+  const ga=ctx.createRadialGradient(0,0,0,0,0,ROCKET_R*2.2);
+  ga.addColorStop(0,'rgba(100,180,255,0.14)');
+  ga.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=ga;ctx.beginPath();ctx.arc(0,0,ROCKET_R*2.2,0,Math.PI*2);ctx.fill();
+
+  // Body
+  ctx.shadowBlur=18;ctx.shadowColor='rgba(120,200,255,.7)';
+  const body=ctx.createLinearGradient(-10,-ROCKET_R*1.5,10,ROCKET_R);
+  body.addColorStop(0,'#d0eeff');
+  body.addColorStop(0.35,'#8ac4ee');
+  body.addColorStop(0.7,'#4a88c8');
+  body.addColorStop(1,'#1a3a6a');
+  ctx.fillStyle=body;
+  ctx.beginPath();
+  ctx.moveTo(0,-ROCKET_R*1.5);
+  ctx.quadraticCurveTo(ROCKET_R*0.85,-ROCKET_R*0.6,ROCKET_R*0.7,ROCKET_R*0.6);
+  ctx.lineTo(ROCKET_R*0.45,ROCKET_R);
+  ctx.lineTo(-ROCKET_R*0.45,ROCKET_R);
+  ctx.lineTo(-ROCKET_R*0.7,ROCKET_R*0.6);
+  ctx.quadraticCurveTo(-ROCKET_R*0.85,-ROCKET_R*0.6,0,-ROCKET_R*1.5);
+  ctx.closePath();ctx.fill();
+
+  // Window
+  ctx.shadowBlur=8;ctx.shadowColor='#00e5ff';
+  const wg=ctx.createRadialGradient(-2,-5,0,-2,-5,8);
+  wg.addColorStop(0,'#aff');wg.addColorStop(0.5,'#0af');wg.addColorStop(1,'#004');
+  ctx.fillStyle=wg;
+  ctx.beginPath();ctx.arc(0,-ROCKET_R*0.35,8,0,Math.PI*2);ctx.fill();
+
+  // Fins
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#3a6aaa';
+  // left fin
+  ctx.beginPath();
+  ctx.moveTo(-ROCKET_R*0.65,ROCKET_R*0.5);
+  ctx.lineTo(-ROCKET_R*1.3,ROCKET_R*1.1);
+  ctx.lineTo(-ROCKET_R*0.45,ROCKET_R);
+  ctx.closePath();ctx.fill();
+  // right fin
+  ctx.beginPath();
+  ctx.moveTo(ROCKET_R*0.65,ROCKET_R*0.5);
+  ctx.lineTo(ROCKET_R*1.3,ROCKET_R*1.1);
+  ctx.lineTo(ROCKET_R*0.45,ROCKET_R);
+  ctx.closePath();ctx.fill();
+
+  ctx.restore();
+}
+
+function drawCells(){
+  for(const c of cells){
+    if(!c.alive) continue;
+    const { x,y,phase:p } = c;
+    const pulse=0.85+0.15*Math.sin(p);
+    const r=CELL_R*pulse;
+
+    ctx.save();
+    ctx.translate(x,y);ctx.rotate(p*0.8);
+
+    // Glow
+    ctx.shadowBlur=22;ctx.shadowColor='rgba(229,200,50,.75)';
+
+    // Diamond shape
+    ctx.fillStyle=`hsl(${48+Math.sin(p)*10},100%,${58+8*pulse}%)`;
+    ctx.beginPath();
+    ctx.moveTo(0,-r*1.7);ctx.lineTo(r,0);ctx.lineTo(0,r*1.7);ctx.lineTo(-r,0);
+    ctx.closePath();ctx.fill();
+
+    // Inner bright
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,220,.75)';
+    ctx.beginPath();
+    ctx.moveTo(0,-r*0.7);ctx.lineTo(r*0.45,0);ctx.lineTo(0,r*0.7);ctx.lineTo(-r*0.45,0);
+    ctx.closePath();ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawRocks(){
+  for(const r of rocks){
+    if(!r.alive) continue;
+    const { x,y,rot,sides,scale } = r;
+    const pr=ROCK_R*scale;
+    ctx.save();
+    ctx.translate(x,y);ctx.rotate(rot);
+
+    // Glow
+    ctx.shadowBlur=14;ctx.shadowColor='rgba(200,120,60,.5)';
+
+    // Irregular polygon
+    ctx.fillStyle=`hsl(20,${25+scale*10}%,${20+scale*8}%)`;
+    ctx.strokeStyle=`hsl(25,40%,${35+scale*8}%)`;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let i=0;i<sides;i++){
+      const ang=(i/sides)*Math.PI*2;
+      const noise=0.75+0.35*Math.sin(ang*2.3+rot);
+      const rx=Math.cos(ang)*pr*noise;
+      const ry=Math.sin(ang)*pr*noise;
+      i===0?ctx.moveTo(rx,ry):ctx.lineTo(rx,ry);
+    }
+    ctx.closePath();ctx.fill();ctx.stroke();
+
+    // Surface detail
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,200,150,.1)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.arc(pr*0.2,pr*0.2,pr*0.35,0,Math.PI*0.9);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.save();
+    ctx.globalAlpha=p.life*0.9;
+    ctx.shadowBlur=10;ctx.shadowColor=p.col;
+    ctx.fillStyle=p.col;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawSparks(){
+  for(const s of sparks){
+    ctx.save();
+    ctx.globalAlpha=s.life*0.85;
+    ctx.shadowBlur=8;ctx.shadowColor=s.col+'0.8)';
+    ctx.fillStyle=s.col+s.life+')';
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r*s.life,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawVignette(){
+  const v=ctx.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,W*0.7);
+  v.addColorStop(0,'rgba(0,0,0,0)');
+  v.addColorStop(1,'rgba(0,0,0,.65)');
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+// ── GAME LOOP ─────────────────────────────────────────────────────
+function loop(now){
+  const dt=Math.min((now-lastT)/1000,0.05);
+  lastT=now;
+  if(phase==='PLAY'){
+    update(dt);
+    draw();
+  }
+  animId=requestAnimationFrame(loop);
+}
+
+// ── PHASE TRANSITIONS ─────────────────────────────────────────────
+function startGame(){
+  phase='PLAY';
+  initGame();
+
+  sStart.classList.add('hidden');
+  sEnd.classList.add('hidden');
+  gWrap.classList.add('show');
+
+  lastT=performance.now();
+  cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(loop);
+}
+
+function endGame(win){
+  phase='OVER';
+  cancelAnimationFrame(animId);
+
+  const isNew=score>highScore;
+  if(isNew){highScore=score;localStorage.setItem('rc_hs',score)}
+
+  endScore.textContent=score;
+  endLabel.textContent=win?'Mission Complete':'Mission Failed';
+  endNew.textContent=isNew?'✦ New Best Score ✦':'Best: '+highScore;
+  sHsLabel.textContent=highScore>0?'BEST: '+highScore:'';
+
+  SFX.end(win);
+
+  setTimeout(()=>{
+    gWrap.classList.remove('show');
+    sEnd.classList.remove('hidden');
+  },500);
+}
+
+// ── BUTTONS ───────────────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click',()=>{ bootAudio(); startGame(); });
+document.getElementById('btn-restart').addEventListener('click',()=>{ bootAudio(); startGame(); });
+document.getElementById('btn-close').addEventListener('click',()=>{
+  phase='OVER';cancelAnimationFrame(animId);
+  gWrap.classList.remove('show');
+  sStart.classList.remove('hidden');
+  sEnd.classList.add('hidden');
+  sHsLabel.textContent=highScore>0?'BEST: '+highScore:'';
+});
+
+// Space to restart from over screen
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&phase==='OVER'){ bootAudio(); startGame(); }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────
+sHsLabel.textContent=highScore>0?'BEST: '+highScore:'';
+</script>
+</body>
+</html>
